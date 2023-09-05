@@ -23,9 +23,8 @@ public class BoardState : MonoBehaviour
         // Skip the first child, which is the parent itself.
         foreach (var child in wallsArray.Skip(1))
         {
-            var (x, y) = GlobalPositionToPiecePosition(child.position.x, child.position.y);
-
-            SetPiece(new Wall(), x, y);
+            var piecePos = GlobalPositionToPiecePosition(child.position);
+            SetPiece(new Wall(), piecePos);
         }
 
         foreach (var (piece, i) in pieces.Select((p, i) => (p, i)))
@@ -35,65 +34,56 @@ public class BoardState : MonoBehaviour
                 continue;
             }
 
-            var x = i % 10;
-            var y = i / 10;
+            var piecePos = new Vector2Int(i % 10, i / 10);
+            var globalPos = (Vector3)PiecePositionToGlobalPosition(piecePos);
+            globalPos.z = -1f;
 
-            var (globalX, globalY) = PiecePositionToGlobalPosition(x, y);
-
-            var _ = Instantiate(
-                SoldierPrefab,
-                new Vector3(globalX, globalY, -1f),
-                Quaternion.identity
-            );
+            var _ = Instantiate(SoldierPrefab, globalPos, Quaternion.identity);
         }
     }
 
     /// <summary>
     /// Get the piece at the given position.
     /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
     /// <returns></returns>
-    public IPiece GetPiece(int x, int y)
+    public IPiece GetPiece(Vector2Int pos)
     {
-        return pieces[x + (y * 10)];
+        return pieces[pos.x + (pos.y * 10)];
     }
 
     /// <summary>
     /// Set the piece at the given position.
     /// </summary>
-    /// <param name="piece"></param>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
     /// <returns></returns>
-    public void SetPiece(IPiece piece, int x, int y)
+    public void SetPiece(IPiece piece, Vector2Int pos)
     {
-        pieces[x + (y * 10)] = piece;
+        pieces[pos.x + (pos.y * 10)] = piece;
     }
 
     /// <summary>
     /// Converts a global position to a piece's position.
     /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
     /// <returns></returns>
-    public (int, int) GlobalPositionToPiecePosition(float x, float y)
+    public Vector2Int GlobalPositionToPiecePosition(Vector2 pos)
     {
         // (-4.5, 4.5) is the position of the top left corner of the board and a Wall is 1 unit wide.
         // Therefore, if a child is at (-4.5, 4.5), it should be at pieces[0].
         // If a child is at (-3.5, 4.5), it should be at pieces[1].
         // If a child is at (-4.5, 3.5), it should be at pieces[10].
-        return (Mathf.RoundToInt(x + 4.5f), Mathf.RoundToInt(-y + 4.5f));
+        var x = Mathf.RoundToInt(pos.x + 4.5f);
+        var y = Mathf.RoundToInt(-pos.y + 4.5f);
+
+        return new Vector2Int(x, y);
     }
 
     /// <summary>
     /// Converts a piece's position to a global position.
     /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <returns></returns>
-    public (float, float) PiecePositionToGlobalPosition(int x, int y)
+    public Vector2 PiecePositionToGlobalPosition(Vector2Int pos)
     {
-        return (x - 4.5f, -y + 4.5f);
+        var x = pos.x - 4.5f;
+        var y = -pos.y + 4.5f;
+
+        return new Vector2(x, y);
     }
 }
