@@ -2,7 +2,7 @@ using System.Linq;
 
 using UnityEngine;
 
-public class BoardState : MonoBehaviour
+public class BoardManager : MonoBehaviour
 {
     [Header("Game Objects")]
     [SerializeField]
