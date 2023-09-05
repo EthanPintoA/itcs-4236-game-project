@@ -22,6 +22,13 @@ public class BoardState
     /// </summary>
     public void SetPiece(IPiece piece, Vector2Int pos)
     {
+        var currentPiece = GetPiece(pos);
+
+        if (currentPiece != null)
+        {
+            Object.Destroy(currentPiece.GameObject);
+        }
+
         Pieces[pos.x + (pos.y * 10)] = piece;
     }
 }
