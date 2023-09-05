@@ -24,7 +24,7 @@ public class BoardManager : MonoBehaviour
         foreach (var child in wallsArray.Skip(1))
         {
             var piecePos = GlobalPositionToPiecePosition(child.position);
-            boardState.SetPiece(new Wall(), piecePos);
+            boardState.SetPiece(new Wall(child.gameObject), piecePos);
         }
 
         foreach (var (piece, i) in boardState.Pieces.Select((p, i) => (p, i)))

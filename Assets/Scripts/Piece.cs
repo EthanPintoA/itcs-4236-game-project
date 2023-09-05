@@ -1,1 +1,6 @@
-public interface IPiece { }
+using UnityEngine;
+
+public interface IPiece
+{
+    public GameObject GameObject { get; }
+}
