@@ -14,7 +14,7 @@ public class BoardManager : MonoBehaviour
     private GameObject SoldierPrefab;
 
     // 10 x 10 board
-    private readonly IPiece[] pieces = new IPiece[100];
+    private readonly BoardState boardState = new();
 
     void Awake()
     {
@@ -24,12 +24,12 @@ public class BoardManager : MonoBehaviour
         foreach (var child in wallsArray.Skip(1))
         {
             var piecePos = GlobalPositionToPiecePosition(child.position);
-            SetPiece(new Wall(), piecePos);
+            boardState.SetPiece(new Wall(), piecePos);
         }
 
-        foreach (var (piece, i) in pieces.Select((p, i) => (p, i)))
+        foreach (var (piece, i) in boardState.Pieces.Select((p, i) => (p, i)))
         {
-            if (pieces[i] != null)
+            if (piece != null)
             {
                 continue;
             }
@@ -39,24 +39,6 @@ public class BoardManager : MonoBehaviour
 
             var _ = Instantiate(SoldierPrefab, globalPos, Quaternion.identity);
         }
-    }
-
-    /// <summary>
-    /// Get the piece at the given position.
-    /// </summary>
-    /// <returns></returns>
-    public IPiece GetPiece(Vector2Int pos)
-    {
-        return pieces[pos.x + (pos.y * 10)];
-    }
-
-    /// <summary>
-    /// Set the piece at the given position.
-    /// </summary>
-    /// <returns></returns>
-    public void SetPiece(IPiece piece, Vector2Int pos)
-    {
-        pieces[pos.x + (pos.y * 10)] = piece;
     }
 
     /// <summary>
