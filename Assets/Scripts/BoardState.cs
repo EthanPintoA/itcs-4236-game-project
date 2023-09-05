@@ -35,8 +35,7 @@ public class BoardState : MonoBehaviour
             }
 
             var piecePos = new Vector2Int(i % 10, i / 10);
-            var globalPos = (Vector3)PiecePositionToGlobalPosition(piecePos);
-            globalPos.z = -1f;
+            var globalPos = PiecePositionToGlobalPosition(piecePos);
 
             var _ = Instantiate(SoldierPrefab, globalPos, Quaternion.identity);
         }
