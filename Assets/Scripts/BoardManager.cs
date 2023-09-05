@@ -13,8 +13,7 @@ public class BoardManager : MonoBehaviour
     [Tooltip("The Prefab for the Soldier. Soldier is currently a placeholder for a piece.")]
     private GameObject SoldierPrefab;
 
-    // 10 x 10 board
-    private readonly BoardState boardState = new();
+    public readonly BoardState boardState = new();
 
     void Awake()
     {
