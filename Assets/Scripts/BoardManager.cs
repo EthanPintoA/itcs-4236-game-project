@@ -22,7 +22,7 @@ public class BoardManager : MonoBehaviour
         // Skip the first child, which is the parent itself.
         foreach (var child in wallsArray.Skip(1))
         {
-            var piecePos = GlobalPositionToPiecePosition(child.position);
+            var piecePos = WorldPosToGridPos(child.position);
             boardState.SetPiece(new Wall(child.gameObject), piecePos);
         }
 
@@ -34,7 +34,7 @@ public class BoardManager : MonoBehaviour
             }
 
             var piecePos = new Vector2Int(i % 10, i / 10);
-            var globalPos = PiecePositionToGlobalPosition(piecePos);
+            var globalPos = GridPosToWorldPos(piecePos);
 
             var soldierObj = Instantiate(SoldierPrefab, globalPos, Quaternion.identity);
 
@@ -46,7 +46,7 @@ public class BoardManager : MonoBehaviour
     /// Converts a global position to a piece's position.
     /// </summary>
     /// <returns></returns>
-    public Vector2Int GlobalPositionToPiecePosition(Vector2 pos)
+    public Vector2Int WorldPosToGridPos(Vector2 pos)
     {
         // (-4.5, 4.5) is the position of the top left corner of the board and a Wall is 1 unit wide.
         // Therefore, if a child is at (-4.5, 4.5), it should be at pieces[0].
@@ -61,7 +61,7 @@ public class BoardManager : MonoBehaviour
     /// <summary>
     /// Converts a piece's position to a global position.
     /// </summary>
-    public Vector2 PiecePositionToGlobalPosition(Vector2Int pos)
+    public Vector2 GridPosToWorldPos(Vector2Int pos)
     {
         var x = pos.x - 4.5f;
         var y = -pos.y + 4.5f;

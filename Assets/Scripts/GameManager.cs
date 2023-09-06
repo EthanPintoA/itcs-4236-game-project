@@ -40,8 +40,8 @@ public class GameManager : MonoBehaviour
     {
         var mouseScreenPos = Mouse.current.position.ReadValue();
         var mouseWorldPos = (Vector2)Camera.main.ScreenToWorldPoint(mouseScreenPos);
-        var pieceGridPos = boardManager.GlobalPositionToPiecePosition(mouseWorldPos);
-        var pieceGlobalPos = boardManager.PiecePositionToGlobalPosition(pieceGridPos);
+        var pieceGridPos = boardManager.WorldPosToGridPos(mouseWorldPos);
+        var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 
         return (pieceGridPos, pieceGlobalPos);
     }
