@@ -25,21 +25,6 @@ public class BoardManager : MonoBehaviour
             var piecePos = WorldPosToGridPos(child.position);
             boardState.SetPiece(new Wall(child.gameObject), piecePos);
         }
-
-        foreach (var (piece, i) in boardState.Pieces.Select((p, i) => (p, i)))
-        {
-            if (piece != null)
-            {
-                continue;
-            }
-
-            var piecePos = new Vector2Int(i % 10, i / 10);
-            var globalPos = GridPosToWorldPos(piecePos);
-
-            var soldierObj = Instantiate(SoldierPrefab, globalPos, Quaternion.identity);
-
-            boardState.SetPiece(new Soldier(soldierObj), piecePos);
-        }
     }
 
     /// <summary>
