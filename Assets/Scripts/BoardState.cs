@@ -31,4 +31,16 @@ public class BoardState
 
         Pieces[pos.x + (pos.y * 10)] = piece;
     }
+
+    /// <summary>
+    /// Moves a piece from one position to another.
+    /// </summary>
+    public void MovePiece(Vector2Int from, Vector2Int to)
+    {
+        var piece = GetPiece(from);
+        SetPiece(piece, to);
+        // I'm not using SetPiece here because I don't want to destroy
+        // the piece's game object.
+        Pieces[from.x + (from.y * 10)] = null;
+    }
 }
