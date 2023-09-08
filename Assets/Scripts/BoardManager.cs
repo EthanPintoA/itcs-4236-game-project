@@ -43,29 +43,34 @@ public class BoardManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Converts a global position to a piece's position.
+    /// Converts a world position to a grid position.
     /// </summary>
-    /// <returns></returns>
-    public Vector2Int WorldPosToGridPos(Vector2 pos)
+    public Vector2Int WorldPosToGridPos(Vector2 worldPos)
     {
-        // (-4.5, 4.5) is the position of the top left corner of the board and a Wall is 1 unit wide.
-        // Therefore, if a child is at (-4.5, 4.5), it should be at pieces[0].
-        // If a child is at (-3.5, 4.5), it should be at pieces[1].
-        // If a child is at (-4.5, 3.5), it should be at pieces[10].
-        var x = Mathf.RoundToInt(pos.x + 4.5f);
-        var y = Mathf.RoundToInt(-pos.y + 4.5f);
+        // Offset is the positional offset to make
+        // world's (x, y) == grid's (x, -y).
+        var offset = new Vector2(4.5f, -4.5f) - (Vector2)transform.position;
 
-        return new Vector2Int(x, y);
+        var gridPos = Vector2Int.RoundToInt(worldPos + offset);
+
+        // Inverted y because the grid's y has a inverse relationship with
+        // the world's y.
+        gridPos.y = -gridPos.y;
+
+        return gridPos;
     }
 
     /// <summary>
-    /// Converts a piece's position to a global position.
+    /// Converts a grid position to a world position.
     /// </summary>
-    public Vector2 GridPosToWorldPos(Vector2Int pos)
+    public Vector2 GridPosToWorldPos(Vector2Int gridPos)
     {
-        var x = pos.x - 4.5f;
-        var y = -pos.y + 4.5f;
+        // Offset is the positional offset to make
+        // world's (x, y) == grid's (x, -y).
+        var offset = new Vector2(4.5f, -4.5f) - (Vector2)transform.position;
 
-        return new Vector2(x, y);
+        // Inverted y because the grid's y has a inverse relationship with
+        // the world's y.
+        return new Vector2(gridPos.x, -gridPos.y) - offset;
     }
 }
