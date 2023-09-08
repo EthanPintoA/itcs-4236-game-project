@@ -23,14 +23,19 @@ public class BoardManager : MonoBehaviour
         foreach (var child in wallsArray.Skip(1))
         {
             var piecePos = WorldPosToGridPos(child.position);
-            boardState.SetPiece(new Wall(child.gameObject), piecePos);
+            if (!piecePos.HasValue)
+            {
+                Debug.LogError($"Wall {child.name} is out of bounds");
+                continue;
+            }
+            boardState.SetPiece(new Wall(child.gameObject), piecePos.Value);
         }
     }
 
     /// <summary>
     /// Converts a world position to a grid position.
     /// </summary>
-    public Vector2Int WorldPosToGridPos(Vector2 worldPos)
+    public Vector2Int? WorldPosToGridPos(Vector2 worldPos)
     {
         // Offset is the positional offset to make
         // world's (x, y) == grid's (x, -y).
@@ -41,6 +46,12 @@ public class BoardManager : MonoBehaviour
         // Inverted y because the grid's y has a inverse relationship with
         // the world's y.
         gridPos.y = -gridPos.y;
+
+        // Check if the grid position is out of bounds.
+        if (gridPos.x < 0 || 9 < gridPos.x || gridPos.y < 0 || 9 < gridPos.y)
+        {
+            return null;
+        }
 
         return gridPos;
     }

@@ -15,7 +15,13 @@ public class GameManager : MonoBehaviour
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            var (pieceGridPos, pieceGlobalPos) = MousePositionToPiecePosition();
+            var piecePos = MousePositionToPiecePosition();
+            if (!piecePos.HasValue)
+            {
+                Debug.Log("Mouse is not over board");
+                return;
+            }
+            var (pieceGridPos, pieceGlobalPos) = piecePos.Value;
 
             Debug.Log($"Creating piece at {pieceGridPos}");
 
@@ -24,11 +30,17 @@ public class GameManager : MonoBehaviour
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
         {
-            var (piecePos, _) = MousePositionToPiecePosition();
+            var piecePos = MousePositionToPiecePosition();
+            if (!piecePos.HasValue)
+            {
+                Debug.Log("Mouse is not over board");
+                return;
+            }
+            var (pieceGridPos, _) = piecePos.Value;
 
-            Debug.Log($"Deleting piece at {piecePos}");
+            Debug.Log($"Deleting piece at {pieceGridPos}");
 
-            boardManager.boardState.SetPiece(null, piecePos);
+            boardManager.boardState.SetPiece(null, pieceGridPos);
         }
     }
 
@@ -36,13 +48,20 @@ public class GameManager : MonoBehaviour
     /// Converts the mouse's position to a piece's position.
     /// </summary>
     /// <returns> The piece's grid position and global position. </returns>
-    public (Vector2Int, Vector2) MousePositionToPiecePosition()
+    public (Vector2Int, Vector2)? MousePositionToPiecePosition()
     {
         var mouseScreenPos = Mouse.current.position.ReadValue();
         var mouseWorldPos = (Vector2)Camera.main.ScreenToWorldPoint(mouseScreenPos);
-        var pieceGridPos = boardManager.WorldPosToGridPos(mouseWorldPos);
-        var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 
-        return (pieceGridPos, pieceGlobalPos);
+        var gridPos = boardManager.WorldPosToGridPos(mouseWorldPos);
+
+        if (!gridPos.HasValue)
+        {
+            return null;
+        }
+
+        var worldPos = boardManager.GridPosToWorldPos(gridPos.Value);
+
+        return (gridPos.Value, worldPos);
     }
 }
