@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
+            //reads mouse position and converts to grid position
             var piecePos = MousePositionToPiecePosition();
             if (!piecePos.HasValue)
             {
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
             }
             var (pieceGridPos, pieceGlobalPos) = piecePos.Value;
 
+            //create soldier on the grid position
             Debug.Log($"Creating piece at {pieceGridPos}");
 
             var soldierObj = Instantiate(SoldierPrefab, pieceGlobalPos, Quaternion.identity);
