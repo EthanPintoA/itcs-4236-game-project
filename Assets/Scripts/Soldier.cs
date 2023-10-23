@@ -3,7 +3,7 @@ using UnityEngine;
 public class Soldier : IPiece
 {
     public static int movement = 1;
-    public getDamage()
+    public int getDamage()
     {
         return 1;
     }
