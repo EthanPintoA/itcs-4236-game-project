@@ -1,12 +1,9 @@
 fileFormatVersion: 2
-guid: c283cfe08d9c34742b75e679cb19c9a8
+guid: 059fb41bcbb2fd144b96f4989ed5fd27
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences:
-  - boardManager: {instanceID: 0}
-  - SoldierPrefab: {instanceID: 0}
-  - SpacePrefab: {instanceID: 0}
+  defaultReferences: []
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
