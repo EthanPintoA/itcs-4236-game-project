@@ -32,7 +32,7 @@ public static class GameStateExtensions
     /// <br/>
     /// E.g. P1Turn -> P2Turn
     /// </summary>
-    public static GameState SwitchPlayersTurns(this GameState state)
+    public static GameState GetSwitchPlayersTurns(this GameState state)
     {
         return state switch
         {
@@ -47,7 +47,7 @@ public static class GameStateExtensions
     /// <br/>
     /// E.g. P1Turn -> P1Selected
     /// </summary>
-    public static GameState ToggleSelected(this GameState state)
+    public static GameState GetToggleSelected(this GameState state)
     {
         return state switch
         {

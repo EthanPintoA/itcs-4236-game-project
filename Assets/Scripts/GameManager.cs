@@ -57,7 +57,9 @@ public class GameManager : MonoBehaviour
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
                 {
-                    CreatePiece(pieceGridPos, pieceGlobalPos);
+                    var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
+                    CreatePiece(pieceGridPos, pieceGlobalPos, player);
+                    state = state.GetSwitchPlayersTurns();
                 }
                 else
                 {
@@ -65,7 +67,7 @@ public class GameManager : MonoBehaviour
                     if (ValidPieceType(piece))
                     {
                         selected = pieceGridPos;
-                        state = state.ToggleSelected();
+                        state = state.GetToggleSelected();
                         GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
                     }
                     else
@@ -77,16 +79,20 @@ public class GameManager : MonoBehaviour
             else if (state.IsSelected())
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                var isNotSpace = piece != null && piece.Type != PieceType.Space;
 
+                if (piece == null || isNotSpace)
+                {
+                    state = state.GetToggleSelected();
+                }
                 //Move piece if an avaliable space is selected
-                if(piece != null && piece.Type == PieceType.Space)
+                else
                 {
                     boardManager.boardState.MovePiece(selected, pieceGridPos);
+                    state = state.GetToggleSelected().GetSwitchPlayersTurns();
                 }
 
                 ClearSpaces();
-
-                state = state.ToggleSelected();
             }
 
 
@@ -105,12 +111,25 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log($"Deleting piece at {pieceGridPos}");
 
-                boardManager.boardState.SetPiece(null, pieceGridPos);
+                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                
+                if (piece == null) {
+                    Debug.Log("There is no piece here");
+                }
+                else if (ValidPieceType(piece))
+                {
+                    boardManager.boardState.SetPiece(null, pieceGridPos);
+                    state = state.GetSwitchPlayersTurns();
+                }
+                else
+                {
+                    Debug.Log("This is not the current player's piece");
+                }
             }
             else if (state.IsSelected())
             {
                 ClearSpaces();
-                state = state.ToggleSelected();
+                state = state.GetToggleSelected();
             }
         }
     }
@@ -129,12 +148,12 @@ public class GameManager : MonoBehaviour
     /// <br/>
     /// Currently only creates a Soldier.
     /// </summary>
-    private void CreatePiece(Vector2Int pieceGridPos, Vector2 pieceGlobalPos)
+    private void CreatePiece(Vector2Int pieceGridPos, Vector2 pieceGlobalPos, PieceType player)
     {
         Debug.Log($"Creating piece on grid position: {pieceGridPos}");
 
         var soldierObj = Instantiate(SoldierPrefab, pieceGlobalPos, Quaternion.identity);
-        boardManager.boardState.SetPiece(new Soldier(soldierObj, PieceType.Player1), pieceGridPos);
+        boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
     }
 
     /// <summary>
