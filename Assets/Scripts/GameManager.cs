@@ -17,7 +17,8 @@ public class GameManager : MonoBehaviour
     [Tooltip("The Prefab for the Space. Denotes which spaces a piece can move to.")]
     private GameObject SpacePrefab;
 
-    private GameState state = GameState.P1Turn;
+    [HideInInspector]
+    public GameState state;
 
     private Vector2Int selected;
 
@@ -27,6 +28,8 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
+        state = GameState.P1Turn;
+
         //Marks avaliable spaces as not selected
         for (int i = 0; i < 100; i++)
         {
