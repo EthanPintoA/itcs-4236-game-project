@@ -17,7 +17,8 @@ public class GameManager : MonoBehaviour
     [Tooltip("The Prefab for the Space. Denotes which spaces a piece can move to.")]
     private GameObject SpacePrefab;
 
-    private GameState state = GameState.P1Turn;
+    [HideInInspector]
+    public GameState state;
 
     private Vector2Int selected;
 
@@ -27,6 +28,8 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
+        state = GameState.P1Turn;
+
         //Marks avaliable spaces as not selected
         for (int i = 0; i < 100; i++)
         {
@@ -49,54 +52,47 @@ public class GameManager : MonoBehaviour
             }
             var (pieceGridPos, pieceGlobalPos) = piecePos.Value;
 
-            if (state == GameState.P1Turn || state == GameState.P2Turn)
+            if (state.IsTurn())
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
                 {
-                    //create soldier on the grid position
-                    Debug.Log($"Creating piece at {pieceGridPos}");
-
-                    var soldierObj = Instantiate(SoldierPrefab, pieceGlobalPos, Quaternion.identity);
-                    boardManager.boardState.SetPiece(new Soldier(soldierObj, PieceType.Player1), pieceGridPos);
+                    var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
+                    CreatePiece(pieceGridPos, pieceGlobalPos, player);
+                    state = state.GetSwitchPlayersTurns();
                 }
                 else
                 {
                     //If selecting one of your pieces, mark as selected and calculate avaliable spaces
-                    if (state == GameState.P1Turn && piece.Type == PieceType.Player1)
+                    if (ValidPieceType(piece))
                     {
                         selected = pieceGridPos;
-                        state = GameState.P1Selected;
+                        state = state.GetToggleSelected();
                         GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
                     }
-                    else if (state == GameState.P2Turn && piece.Type == PieceType.Player2)
+                    else
                     {
-                        selected = pieceGridPos;
-                        state = GameState.P2Selected;
-                        GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
+                        Debug.Log("This is not the current player's piece");
                     }
                 }
             }
-            else if (state == GameState.P1Selected || state == GameState.P2Selected)
+            else if (state.IsSelected())
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                var isNotSpace = piece != null && piece.Type != PieceType.Space;
 
+                if (piece == null || isNotSpace)
+                {
+                    state = state.GetToggleSelected();
+                }
                 //Move piece if an avaliable space is selected
-                if(piece != null && piece.Type == PieceType.Space)
+                else
                 {
                     boardManager.boardState.MovePiece(selected, pieceGridPos);
+                    state = state.GetToggleSelected().GetSwitchPlayersTurns();
                 }
 
                 ClearSpaces();
-
-                if (state == GameState.P1Selected)
-                {
-                    state = GameState.P1Turn;
-                }
-                else if (state == GameState.P2Selected)
-                {
-                    state = GameState.P2Turn;
-                }
             }
 
 
@@ -111,25 +107,53 @@ public class GameManager : MonoBehaviour
             }
             var (pieceGridPos, _) = piecePos.Value;
 
-            if (state == GameState.P1Turn || state == GameState.P2Turn)
+            if (state.IsTurn())
             {
                 Debug.Log($"Deleting piece at {pieceGridPos}");
 
-                boardManager.boardState.SetPiece(null, pieceGridPos);
+                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                
+                if (piece == null) {
+                    Debug.Log("There is no piece here");
+                }
+                else if (ValidPieceType(piece))
+                {
+                    boardManager.boardState.SetPiece(null, pieceGridPos);
+                    state = state.GetSwitchPlayersTurns();
+                }
+                else
+                {
+                    Debug.Log("This is not the current player's piece");
+                }
             }
-            else if (state == GameState.P1Selected || state == GameState.P2Selected)
+            else if (state.IsSelected())
             {
                 ClearSpaces();
-                if(state == GameState.P1Selected)
-                {
-                    state = GameState.P1Turn;
-                }
-                else if (state == GameState.P2Selected)
-                {
-                    state = GameState.P2Turn;
-                }
+                state = state.GetToggleSelected();
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if the piece is the correct type for the current player
+    /// </summary>
+    private bool ValidPieceType(IPiece piece)
+    {
+        return (state == GameState.P1Turn && piece.Type == PieceType.Player1)
+            || (state == GameState.P2Turn && piece.Type == PieceType.Player2);
+    }
+
+    /// <summary>
+    /// Creates a piece at the given position.
+    /// <br/>
+    /// Currently only creates a Soldier.
+    /// </summary>
+    private void CreatePiece(Vector2Int pieceGridPos, Vector2 pieceGlobalPos, PieceType player)
+    {
+        Debug.Log($"Creating piece on grid position: {pieceGridPos}");
+
+        var soldierObj = Instantiate(SoldierPrefab, pieceGlobalPos, Quaternion.identity);
+        boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
     }
 
     /// <summary>
@@ -240,12 +264,3 @@ public class GameManager : MonoBehaviour
         }
     }
 }
-
-public enum GameState
-{
-    P1Turn,
-    P2Turn,
-    P1Selected,
-    P2Selected
-}
-
