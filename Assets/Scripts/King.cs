@@ -11,7 +11,7 @@ public class King : IPiece
     public static int range = 1;
     public GameObject GameObject { get; }
 
-    public Soldier(GameObject gameObject)
+    public King(GameObject gameObject)
     {
         GameObject = gameObject;
     }
