@@ -10,20 +10,34 @@ public class GameManager : MonoBehaviour
     private BoardManager boardManager;
 
     [SerializeField]
-    [Tooltip("The Prefab for the Soldier. Soldier is currently a placeholder for a piece.")]
-    private GameObject SoldierPrefab;
+    [Tooltip("The Prefab for the Soldier for Player1. Soldier is currently a placeholder for a piece.")]
+    private GameObject SoldierPrefabP1;
+
+    [SerializeField]
+    [Tooltip("The Prefab for the Soldier for Player2. Soldier is currently a placeholder for a piece.")]
+    private GameObject SoldierPrefabP2;
+
+    [SerializeField]
+    [Tooltip("The Prefab for the Target. Denotes which spaces a piece can target with attacks.")]
+    private GameObject SpacePrefab;
 
     [SerializeField]
     [Tooltip("The Prefab for the Space. Denotes which spaces a piece can move to.")]
-    private GameObject SpacePrefab;
+    private GameObject TargetPrefab;
 
     [HideInInspector]
     public GameState state;
 
     private Vector2Int selected;
 
-    //Array value indicates the previous space the piece would move from for if we implement a moving animation
+    //During Select, array value indicates the previous space the piece would move from for if we implement a moving animation
+    //During Attack, array value simply has 0 for invalid and 1 for valid
     private int[] board = new int[100];
+
+    //Array to track targets and the number
+    //Might be a better way to do this
+    private GameObject[] targets = new GameObject[100];
+    private int targetnum = 0;
 
 
     void Awake()
@@ -67,7 +81,7 @@ public class GameManager : MonoBehaviour
                     if (ValidPieceType(piece))
                     {
                         selected = pieceGridPos;
-                        state = state.GetToggleSelected();
+                        state = state.GetNextState();
                         GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
                     }
                     else
@@ -80,22 +94,56 @@ public class GameManager : MonoBehaviour
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 var isNotSpace = piece != null && piece.Type != PieceType.Space;
+                var sameSpace = pieceGridPos == selected;
 
-                if (piece == null || isNotSpace)
+                if ((piece == null || isNotSpace) && !sameSpace)
                 {
-                    state = state.GetToggleSelected();
+                    ClearSpaces();
+                    state = state.GetCurrentTurn();
                 }
-                //Move piece if an avaliable space is selected
+                //If an avaliable space or current space is selected
                 else
                 {
-                    boardManager.boardState.MovePiece(selected, pieceGridPos);
-                    state = state.GetToggleSelected().GetSwitchPlayersTurns();
+                    if (!sameSpace)
+                    {
+                        boardManager.boardState.MovePiece(selected, pieceGridPos);
+                        piece = boardManager.boardState.GetPiece(pieceGridPos);
+                        selected = pieceGridPos;
+                    }
+                    ClearSpaces();
+                    state = state.GetNextState();
+                    GetAttacks(pieceGridPos.x + (pieceGridPos.y * 10), piece.Range);
+
+                    if (targetnum == 0)
+                    {
+                        state = state.GetCurrentTurn().GetSwitchPlayersTurns();
+                    }
+                }
+            }
+            else if (state.IsAttack())
+            {
+                int gridNum = pieceGridPos.x + (pieceGridPos.y * 10);
+                bool isTargeted = false;
+                for(int i = 0; i < targetnum; i++)
+                {
+                    Vector2Int targetGridPos = (Vector2Int)boardManager.WorldPosToGridPos((Vector2)targets[i].transform.position);
+                    int targetNum = targetGridPos.x + (targetGridPos.y * 10);
+                    if(gridNum == targetNum)
+                    {
+                        isTargeted = true;
+                        break;
+                    }
                 }
 
+                //If a targeted space is selected, attack piece
+                if (isTargeted)
+                {
+                    boardManager.boardState.AttackPiece(selected, pieceGridPos);
+                }
+                
                 ClearSpaces();
+                state = state.GetNextState().GetSwitchPlayersTurns();
             }
-
-
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
         {
@@ -129,7 +177,12 @@ public class GameManager : MonoBehaviour
             else if (state.IsSelected())
             {
                 ClearSpaces();
-                state = state.GetToggleSelected();
+                state = state.GetCurrentTurn();
+            }
+            else if (state.IsAttack())
+            {
+                ClearSpaces();
+                state = state.GetCurrentTurn().GetSwitchPlayersTurns();
             }
         }
     }
@@ -151,9 +204,17 @@ public class GameManager : MonoBehaviour
     private void CreatePiece(Vector2Int pieceGridPos, Vector2 pieceGlobalPos, PieceType player)
     {
         Debug.Log($"Creating piece on grid position: {pieceGridPos}");
-
-        var soldierObj = Instantiate(SoldierPrefab, pieceGlobalPos, Quaternion.identity);
-        boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+        
+        if(player == PieceType.Player1)
+        {
+            var soldierObj = Instantiate(SoldierPrefabP1, pieceGlobalPos, Quaternion.identity);
+            boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+        }
+        else
+        {
+            var soldierObj = Instantiate(SoldierPrefabP2, pieceGlobalPos, Quaternion.identity);
+            boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+        }
     }
 
     /// <summary>
@@ -246,6 +307,56 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Gets all avaliable spaces that a piece can attack and puts a Target on them
+    /// </summary>
+    public void GetAttacks(int cspace, int range)
+    {
+        IPiece piece = boardManager.boardState.GetPiece(new Vector2Int((cspace) % 10, (cspace) / 10));
+        if (piece != null && ((state == GameState.P1Attack && piece.Type == PieceType.Player2) || (state == GameState.P2Attack && piece.Type == PieceType.Player1))) //Add Wall attack?
+        {
+            board[cspace] = 1;
+
+            //Add Target Indicator
+            var targetObj = Instantiate(TargetPrefab, boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10)), Quaternion.identity);
+            targets[targetnum] = targetObj;
+            targetnum++;
+        }
+        else
+        {
+            board[cspace] = 0;
+        }
+
+        if (range == 0)
+        {
+            return;
+        }
+
+        //Up
+        if (cspace > 9 && board[cspace - 10] < 0)
+        {
+            GetAttacks(cspace - 10, range - 1);
+        }
+
+        //Down
+        if (cspace < 90 && board[cspace + 10] < 0)
+        {
+            GetAttacks(cspace + 10, range - 1);
+        }
+
+        //Left
+        if (cspace % 10 != 0 && board[cspace - 1] < 0)
+        {
+            GetAttacks(cspace - 1, range - 1);
+        }
+
+        //Right
+        if (cspace % 10 != 9 && board[cspace + 1] < 0)
+        {
+            GetAttacks(cspace + 1, range - 1);
+        }
+    }
+
+    /// <summary>
     /// Clears the board array and all Space pieces
     /// </summary>
     public void ClearSpaces()
@@ -255,12 +366,23 @@ public class GameManager : MonoBehaviour
             if(board[i] >= 0)
             {
                 board[i] = -1;
-                IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
-                if (piece != null && piece.Type == PieceType.Space)
+
+                if (state.IsSelected())
                 {
-                    boardManager.boardState.SetPiece(null, new Vector2Int(i % 10, i / 10));
+                    IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
+                    if (piece != null && piece.Type == PieceType.Space)
+                    {
+                        boardManager.boardState.SetPiece(null, new Vector2Int(i % 10, i / 10));
+                    }
                 }
             }
         }
+
+        for (int i = 0; i < targetnum; i++)
+        {
+            Object.Destroy(targets[i]);
+            targets[i] = null;
+        }
+        targetnum = 0;
     }
 }

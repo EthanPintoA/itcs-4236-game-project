@@ -55,4 +55,22 @@ public class BoardState
         // the piece's game object.
         Pieces[from.x + (from.y * 10)] = null;
     }
+
+    public void AttackPiece(Vector2Int from, Vector2Int to)
+    {
+        var apiece = GetPiece(from);
+        var dPiece = GetPiece(to);
+
+        int damage = apiece.GetDamage();
+        dPiece.Health -= damage;
+
+        if(dPiece.Health <= 0)
+        {
+            SetPiece(null, to);
+        }
+        else
+        {
+            //Handle health UI
+        }
+    }
 }
