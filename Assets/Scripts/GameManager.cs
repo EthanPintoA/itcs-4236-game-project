@@ -58,13 +58,13 @@ public class GameManager : MonoBehaviour
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             //reads mouse position and converts to grid position
-            var piecePos = MousePositionToPiecePosition();
-            if (!piecePos.HasValue)
+            var nPiecePos = MousePositionToPiecePosition();
+            if (!nPiecePos.HasValue)
             {
                 Debug.Log("Mouse is not over board");
                 return;
             }
-            var (pieceGridPos, pieceGlobalPos) = piecePos.Value;
+            var pieceGridPos = nPiecePos.Value;
 
             if (state.IsTurn())
             {
@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviour
                 if (piece == null)
                 {
                     var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
-                    CreatePiece(pieceGridPos, pieceGlobalPos, player);
+                    CreatePiece(pieceGridPos, player);
                     state = state.GetSwitchPlayersTurns();
                 }
                 else
@@ -148,13 +148,13 @@ public class GameManager : MonoBehaviour
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
         {
-            var piecePos = MousePositionToPiecePosition();
-            if (!piecePos.HasValue)
+            var nPiecePos = MousePositionToPiecePosition();
+            if (!nPiecePos.HasValue)
             {
                 Debug.Log("Mouse is not over board");
                 return;
             }
-            var (pieceGridPos, _) = piecePos.Value;
+            var pieceGridPos = nPiecePos.Value;
 
             if (state.IsTurn())
             {
@@ -202,9 +202,11 @@ public class GameManager : MonoBehaviour
     /// <br/>
     /// Currently only creates a Soldier.
     /// </summary>
-    private void CreatePiece(Vector2Int pieceGridPos, Vector2 pieceGlobalPos, PieceType player)
+    private void CreatePiece(Vector2Int pieceGridPos, PieceType player)
     {
         Debug.Log($"Creating piece on grid position: {pieceGridPos}");
+        
+        var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
         
         if(player == PieceType.Player1)
         {
@@ -222,7 +224,7 @@ public class GameManager : MonoBehaviour
     /// Converts the mouse's position to a piece's position.
     /// </summary>
     /// <returns> The piece's grid position and global position. </returns>
-    public (Vector2Int, Vector2)? MousePositionToPiecePosition()
+    public Vector2Int? MousePositionToPiecePosition()
     {
         var mouseScreenPos = Mouse.current.position.ReadValue();
         var mouseWorldPos = (Vector2)Camera.main.ScreenToWorldPoint(mouseScreenPos);
@@ -234,9 +236,7 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
-        var worldPos = boardManager.GridPosToWorldPos(gridPos.Value);
-
-        return (gridPos.Value, worldPos);
+        return gridPos.Value;
     }
 
     /// <summary>
