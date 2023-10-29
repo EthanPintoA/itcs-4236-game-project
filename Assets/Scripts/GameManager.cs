@@ -318,7 +318,9 @@ public class GameManager : MonoBehaviour
             board[cspace] = 1;
 
             //Add Target Indicator
-            var targetObj = Instantiate(TargetPrefab, boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10)), Quaternion.identity);
+            var targetPos = (Vector3)boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10));
+            targetPos.z = -1; // So that the target is in front of the piece
+            var targetObj = Instantiate(TargetPrefab, targetPos, Quaternion.identity);
             targets[targetnum] = targetObj;
             targetnum++;
         }
