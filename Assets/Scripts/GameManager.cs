@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 
 
@@ -50,7 +51,7 @@ public class GameManager : MonoBehaviour
             board[i] = -1;
         }
     }
-    
+
     void Start() {
         CreatePiece(new Vector2Int(0, 0), PieceType.Player1);
         CreatePiece(new Vector2Int(1, 0), PieceType.Player1);
@@ -153,6 +154,20 @@ public class GameManager : MonoBehaviour
                 if (isTargeted)
                 {
                     boardManager.boardState.AttackPiece(selected, pieceGridPos);
+                    var currentPlayer =
+                        (state == GameState.P1Attack) ? PieceType.Player1 : PieceType.Player2;
+                    if (boardManager.DidPlayerWin(currentPlayer))
+                    {
+                        Debug.Log($"Player {currentPlayer} won!");
+                        if (currentPlayer == PieceType.Player1)
+                        {
+                            SceneManager.LoadScene("P1WinScene");
+                        }
+                        else
+                        {
+                            SceneManager.LoadScene("P2WinScene");
+                        }
+                    }
                 }
                 
                 ClearSpaces();
@@ -220,7 +235,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Creating piece on grid position: {pieceGridPos}");
         
         var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
-        
+
         if(player == PieceType.Player1)
         {
             var soldierObj = Instantiate(SoldierPrefabP1, pieceGlobalPos, Quaternion.identity);
