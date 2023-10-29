@@ -116,6 +116,7 @@ public class GameManager : MonoBehaviour
 
                     if (targetnum == 0)
                     {
+                        ClearSpaces();
                         state = state.GetCurrentTurn().GetSwitchPlayersTurns();
                     }
                 }
