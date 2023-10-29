@@ -9,6 +9,8 @@ public class TurnManager : MonoBehaviour
     // To keep track when the state changes
     // FIXME: GameState management need be done in a better way
     // so we don't need this
+
+    //Can we just call UpdatePlayerTurnText whenever we call GetSwitchPlayerTurns
     GameState previousState;
 
     // Start is called before the first frame update
