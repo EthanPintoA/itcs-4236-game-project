@@ -51,7 +51,17 @@ public class GameManager : MonoBehaviour
         }
     }
     
+    void Start() {
+        CreatePiece(new Vector2Int(0, 0), PieceType.Player1);
+        CreatePiece(new Vector2Int(1, 0), PieceType.Player1);
+        CreatePiece(new Vector2Int(2, 0), PieceType.Player1);
+        CreatePiece(new Vector2Int(3, 0), PieceType.Player1);
 
+        CreatePiece(new Vector2Int(9, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(8, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(7, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(6, 9), PieceType.Player2);
+    }
 
     void Update()
     {
@@ -71,9 +81,12 @@ public class GameManager : MonoBehaviour
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
                 {
-                    var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
-                    CreatePiece(pieceGridPos, player);
-                    state = state.GetSwitchPlayersTurns();
+                    // Disable this until currency is implemented
+                    Debug.Log("Creating a piece is currently disabled");
+
+                    // var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
+                    // CreatePiece(pieceGridPos, player);
+                    // state = state.GetSwitchPlayersTurns();
                 }
                 else
                 {
