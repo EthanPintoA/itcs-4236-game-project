@@ -69,4 +69,12 @@ public class BoardManager : MonoBehaviour
         // the world's y.
         return new Vector2(gridPos.x, -gridPos.y) - offset;
     }
+
+    public bool DidPlayerWin(PieceType player)
+    {
+        var enemy = (player == PieceType.Player1) ? PieceType.Player2 : PieceType.Player1;
+        var enemyHasPieces = boardState.Pieces.Any(piece => piece?.Type == enemy);
+
+        return !enemyHasPieces;
+    }
 }
