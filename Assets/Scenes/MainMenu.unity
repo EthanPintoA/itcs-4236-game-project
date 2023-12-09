@@ -257,7 +257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5af051bd5e5bcde48bdc5f92b6f07c88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneName: 
+  sceneName: SampleScene
   button: {fileID: 95717490}
 --- !u!1 &184660994
 GameObject:
@@ -468,7 +468,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5af051bd5e5bcde48bdc5f92b6f07c88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneName: SampleScene
+  sceneName: 
   button: {fileID: 479272700}
 --- !u!1 &601503302
 GameObject:
