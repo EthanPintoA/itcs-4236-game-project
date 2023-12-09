@@ -365,25 +365,41 @@ public class GameManager : MonoBehaviour
         //Up
         if (cspace > 9 && board[cspace - 10] < 0)
         {
-            GetAttacks(cspace - 10, range - 1);
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 10) % 10, (cspace - 10) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                GetAttacks(cspace - 10, range - 1);
+            }
         }
 
         //Down
         if (cspace < 90 && board[cspace + 10] < 0)
         {
-            GetAttacks(cspace + 10, range - 1);
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 10) % 10, (cspace + 10) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                GetAttacks(cspace + 10, range - 1);
+            }   
         }
 
         //Left
         if (cspace % 10 != 0 && board[cspace - 1] < 0)
         {
-            GetAttacks(cspace - 1, range - 1);
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 1) % 10, (cspace - 1) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                GetAttacks(cspace - 1, range - 1);
+            }
         }
 
         //Right
         if (cspace % 10 != 9 && board[cspace + 1] < 0)
         {
-            GetAttacks(cspace + 1, range - 1);
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 1) % 10, (cspace + 1) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                GetAttacks(cspace + 1, range - 1);
+            } 
         }
     }
 
