@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 
 
@@ -50,30 +51,43 @@ public class GameManager : MonoBehaviour
             board[i] = -1;
         }
     }
-    
 
+    void Start() {
+        CreatePiece(new Vector2Int(0, 0), PieceType.Player1);
+        CreatePiece(new Vector2Int(1, 0), PieceType.Player1);
+        CreatePiece(new Vector2Int(2, 0), PieceType.Player1);
+        CreatePiece(new Vector2Int(3, 0), PieceType.Player1);
+
+        CreatePiece(new Vector2Int(9, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(8, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(7, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(6, 9), PieceType.Player2);
+    }
 
     void Update()
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             //reads mouse position and converts to grid position
-            var piecePos = MousePositionToPiecePosition();
-            if (!piecePos.HasValue)
+            var nPiecePos = MousePositionToPiecePosition();
+            if (!nPiecePos.HasValue)
             {
                 Debug.Log("Mouse is not over board");
                 return;
             }
-            var (pieceGridPos, pieceGlobalPos) = piecePos.Value;
+            var pieceGridPos = nPiecePos.Value;
 
             if (state.IsTurn())
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
                 {
-                    var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
-                    CreatePiece(pieceGridPos, pieceGlobalPos, player);
-                    state = state.GetSwitchPlayersTurns();
+                    // Disable this until currency is implemented
+                    Debug.Log("Creating a piece is currently disabled");
+
+                    // var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
+                    // CreatePiece(pieceGridPos, player);
+                    // state = state.GetSwitchPlayersTurns();
                 }
                 else
                 {
@@ -140,6 +154,20 @@ public class GameManager : MonoBehaviour
                 if (isTargeted)
                 {
                     boardManager.boardState.AttackPiece(selected, pieceGridPos);
+                    var currentPlayer =
+                        (state == GameState.P1Attack) ? PieceType.Player1 : PieceType.Player2;
+                    if (boardManager.DidPlayerWin(currentPlayer))
+                    {
+                        Debug.Log($"Player {currentPlayer} won!");
+                        if (currentPlayer == PieceType.Player1)
+                        {
+                            SceneManager.LoadScene("P1WinScene");
+                        }
+                        else
+                        {
+                            SceneManager.LoadScene("P2WinScene");
+                        }
+                    }
                 }
                 
                 ClearSpaces();
@@ -148,13 +176,13 @@ public class GameManager : MonoBehaviour
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
         {
-            var piecePos = MousePositionToPiecePosition();
-            if (!piecePos.HasValue)
+            var nPiecePos = MousePositionToPiecePosition();
+            if (!nPiecePos.HasValue)
             {
                 Debug.Log("Mouse is not over board");
                 return;
             }
-            var (pieceGridPos, _) = piecePos.Value;
+            var pieceGridPos = nPiecePos.Value;
 
             if (state.IsTurn())
             {
@@ -202,10 +230,12 @@ public class GameManager : MonoBehaviour
     /// <br/>
     /// Currently only creates a Soldier.
     /// </summary>
-    private void CreatePiece(Vector2Int pieceGridPos, Vector2 pieceGlobalPos, PieceType player)
+    private void CreatePiece(Vector2Int pieceGridPos, PieceType player)
     {
         Debug.Log($"Creating piece on grid position: {pieceGridPos}");
         
+        var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
+
         if(player == PieceType.Player1)
         {
             var soldierObj = Instantiate(SoldierPrefabP1, pieceGlobalPos, Quaternion.identity);
@@ -222,7 +252,7 @@ public class GameManager : MonoBehaviour
     /// Converts the mouse's position to a piece's position.
     /// </summary>
     /// <returns> The piece's grid position and global position. </returns>
-    public (Vector2Int, Vector2)? MousePositionToPiecePosition()
+    public Vector2Int? MousePositionToPiecePosition()
     {
         var mouseScreenPos = Mouse.current.position.ReadValue();
         var mouseWorldPos = (Vector2)Camera.main.ScreenToWorldPoint(mouseScreenPos);
@@ -234,9 +264,7 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
-        var worldPos = boardManager.GridPosToWorldPos(gridPos.Value);
-
-        return (gridPos.Value, worldPos);
+        return gridPos.Value;
     }
 
     /// <summary>
@@ -318,7 +346,9 @@ public class GameManager : MonoBehaviour
             board[cspace] = 1;
 
             //Add Target Indicator
-            var targetObj = Instantiate(TargetPrefab, boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10)), Quaternion.identity);
+            var targetPos = (Vector3)boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10));
+            targetPos.z = -1; // So that the target is in front of the piece
+            var targetObj = Instantiate(TargetPrefab, targetPos, Quaternion.identity);
             targets[targetnum] = targetObj;
             targetnum++;
         }
