@@ -7,6 +7,8 @@ public class TurnManager : MonoBehaviour
     public TMP_Text playerTurnText;
     public TMP_Text P1Coins;
     public TMP_Text P2Coins;
+    public Canvas P1canvas;
+    public Canvas P2canvas;
     private int currentTurn = 0;
 
     // To keep track when the state changes
@@ -21,11 +23,14 @@ public class TurnManager : MonoBehaviour
     {
         previousState = gameManager.state;
         UpdatePlayerTurnText(gameManager.state);
+
         //initialize coin values
         P1Coins.text = "10";
         P2Coins.text = "10";
         //make P2coin value invisible
         MakeTextInvisible(P2Coins);
+
+        P2canvas.enabled = false;
     }
 
     // Update is called once per frame
@@ -49,7 +54,11 @@ public class TurnManager : MonoBehaviour
                     MakeTextVisible(P1Coins);
                     MakeTextInvisible(P2Coins);
 
+                    //switch to P1 Canvas
+                    P2canvas.enabled = false;
+                    P1canvas.enabled = true;
                     break;
+
                 case GameState.P2Turn:
                     Debug.Log("Player 2's turn");
                     UpdatePlayerTurnText(GameState.P2Turn);
@@ -57,6 +66,10 @@ public class TurnManager : MonoBehaviour
                     //show player coins
                     MakeTextVisible(P2Coins);
                     MakeTextInvisible(P1Coins);
+
+                    //switch to P2 Canvas
+                    P1canvas.enabled = false;
+                    P2canvas.enabled = true;
                     break;
             }
         }
