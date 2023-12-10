@@ -16,13 +16,13 @@ public class TurnManager : MonoBehaviour
     // so we don't need this
 
     //Can we just call UpdatePlayerTurnText whenever we call GetSwitchPlayerTurns
-    GameState previousState;
+    PlayerTurn previousTurn;
 
     // Start is called before the first frame update
     void Start()
     {
-        previousState = gameManager.state;
-        UpdatePlayerTurnText(gameManager.state);
+        UpdatePlayerTurnText(gameManager.playerTurn);
+        previousTurn = gameManager.playerTurn;
 
         //initialize coin values
         P1Coins.text = "10";
@@ -37,14 +37,14 @@ public class TurnManager : MonoBehaviour
     void Update()
     {
         // If the state changed
-        if (gameManager.state != previousState)
+        if (gameManager.playerTurn != previousTurn)
         {
-            switch (gameManager.state)
+            switch (gameManager.playerTurn)
             {
-                case GameState.P1Turn:
+                case PlayerTurn.Player1:
                     Debug.Log("Player 1's turn");
-                    UpdatePlayerTurnText(GameState.P1Turn);
-                    previousState = gameManager.state;
+                    UpdatePlayerTurnText(PlayerTurn.Player1);
+                    previousTurn = gameManager.playerTurn;
                     //update turn counter
                     currentTurn++;
                     //update player coins
@@ -59,10 +59,10 @@ public class TurnManager : MonoBehaviour
                     P1canvas.enabled = true;
                     break;
 
-                case GameState.P2Turn:
+                case PlayerTurn.Player2:
                     Debug.Log("Player 2's turn");
-                    UpdatePlayerTurnText(GameState.P2Turn);
-                    previousState = gameManager.state;
+                    UpdatePlayerTurnText(PlayerTurn.Player2);
+                    previousTurn = gameManager.playerTurn;
                     //show player coins
                     MakeTextVisible(P2Coins);
                     MakeTextInvisible(P1Coins);
@@ -75,12 +75,12 @@ public class TurnManager : MonoBehaviour
         }
     }
 
-    private void UpdatePlayerTurnText(GameState playerTurn)
+    private void UpdatePlayerTurnText(PlayerTurn playerTurn)
     {
         playerTurnText.text = playerTurn switch
         {
-            GameState.P1Turn => "Player 1's\nTurn",
-            GameState.P2Turn => "Player 2's\nTurn",
+            PlayerTurn.Player1 => "Player 1's\nTurn",
+            PlayerTurn.Player2 => "Player 2's\nTurn",
             _ => playerTurnText.text
         };
     }
