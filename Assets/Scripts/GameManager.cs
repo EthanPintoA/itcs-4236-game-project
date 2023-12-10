@@ -29,7 +29,9 @@ public class GameManager : MonoBehaviour
     private GameObject TargetPrefab;
 
     [HideInInspector]
-    public GameState state;
+    public PlayerTurn playerTurn;
+    [HideInInspector]
+    public GameState? gameState;
 
     private Vector2Int selected;
 
@@ -45,7 +47,8 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        state = GameState.P1Turn;
+        playerTurn = PlayerTurn.Player1;
+        gameState = null;
 
         //Marks avaliable spaces as not selected
         for (int i = 0; i < 100; i++)
@@ -79,7 +82,7 @@ public class GameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
-            if (state.IsTurn())
+            if (gameState == null)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
@@ -96,7 +99,7 @@ public class GameManager : MonoBehaviour
                     && shopManager.selectedPiece == SelectedPiece.Tnt
                 )
                 {
-                    var requiredPiece = GameState.P1Turn == state ? PieceType.Player1 : PieceType.Player2;
+                    var requiredPiece = playerTurn.GetPlayerPiece();
                     if (HasNeighbor(pieceGridPos, requiredPiece))
                     {
                         boardManager.boardState.SetPiece(null, pieceGridPos);
@@ -111,7 +114,7 @@ public class GameManager : MonoBehaviour
                     if (ValidPieceType(piece))
                     {
                         selected = pieceGridPos;
-                        state = state.GetNextState();
+                        gameState = GameState.Selected;
                         GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
                     }
                     else
@@ -120,7 +123,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-            else if (state.IsSelected())
+            else if (gameState == GameState.Selected)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 var isNotSpace = piece != null && piece.Type != PieceType.Space;
@@ -129,7 +132,7 @@ public class GameManager : MonoBehaviour
                 if ((piece == null || isNotSpace) && !sameSpace)
                 {
                     ClearSpaces();
-                    state = state.GetCurrentTurn();
+                    gameState = null;
                 }
                 //If an avaliable space or current space is selected
                 else
@@ -141,17 +144,18 @@ public class GameManager : MonoBehaviour
                         selected = pieceGridPos;
                     }
                     ClearSpaces();
-                    state = state.GetNextState();
+                    gameState = GameState.Attack;
                     GetAttacks(pieceGridPos.x + (pieceGridPos.y * 10), piece.Range);
 
                     if (targetnum == 0)
                     {
                         ClearSpaces();
-                        state = state.GetCurrentTurn().GetSwitchPlayersTurns();
+                        gameState = null;
+                        playerTurn.SwitchPlayers();
                     }
                 }
             }
-            else if (state.IsAttack())
+            else if (gameState == GameState.Attack)
             {
                 int gridNum = pieceGridPos.x + (pieceGridPos.y * 10);
                 bool isTargeted = false;
@@ -170,8 +174,7 @@ public class GameManager : MonoBehaviour
                 if (isTargeted)
                 {
                     boardManager.boardState.AttackPiece(selected, pieceGridPos);
-                    var currentPlayer =
-                        (state == GameState.P1Attack) ? PieceType.Player1 : PieceType.Player2;
+                    var currentPlayer = playerTurn.GetPlayerPiece();
                     if (boardManager.DidPlayerWin(currentPlayer))
                     {
                         Debug.Log($"Player {currentPlayer} won!");
@@ -187,7 +190,8 @@ public class GameManager : MonoBehaviour
                 }
                 
                 ClearSpaces();
-                state = state.GetNextState().GetSwitchPlayersTurns();
+                gameState = null;
+                playerTurn.SwitchPlayers();
             }
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
@@ -200,7 +204,7 @@ public class GameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
-            if (state.IsTurn())
+            if (gameState == null)
             {
                 Debug.Log($"Deleting piece at {pieceGridPos}");
 
@@ -212,22 +216,23 @@ public class GameManager : MonoBehaviour
                 else if (ValidPieceType(piece))
                 {
                     boardManager.boardState.SetPiece(null, pieceGridPos);
-                    state = state.GetSwitchPlayersTurns();
+                    playerTurn.SwitchPlayers();
                 }
                 else
                 {
                     Debug.Log("This is not the current player's piece");
                 }
             }
-            else if (state.IsSelected())
+            else if (gameState == GameState.Selected)
             {
                 ClearSpaces();
-                state = state.GetCurrentTurn();
+                gameState = null;
             }
-            else if (state.IsAttack())
+            else if (gameState == GameState.Attack)
             {
                 ClearSpaces();
-                state = state.GetCurrentTurn().GetSwitchPlayersTurns();
+                gameState = null;
+                playerTurn.SwitchPlayers();
             }
         }
     }
@@ -237,8 +242,8 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private bool ValidPieceType(IPiece piece)
     {
-        return (state == GameState.P1Turn && piece.Type == PieceType.Player1)
-            || (state == GameState.P2Turn && piece.Type == PieceType.Player2);
+        return (playerTurn == PlayerTurn.Player1 && piece.Type == PieceType.Player1)
+            || (playerTurn == PlayerTurn.Player2 && piece.Type == PieceType.Player2);
     }
 
     /// <summary>
@@ -346,7 +351,7 @@ public class GameManager : MonoBehaviour
         if(cspace > 9 && board[cspace - 10] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 10) % 10, (cspace - 10) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
             {
                 board[cspace - 10] = cspace;
                 GetSpaces(cspace - 10, move - 1);
@@ -357,7 +362,7 @@ public class GameManager : MonoBehaviour
         if (cspace < 90 && board[cspace + 10] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 10) % 10, (cspace + 10) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
             {
                 board[cspace + 10] = cspace;
                 GetSpaces(cspace + 10, move - 1);
@@ -368,7 +373,7 @@ public class GameManager : MonoBehaviour
         if (cspace % 10 != 0 && board[cspace - 1] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 1) % 10, (cspace - 1) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
             {
                 board[cspace - 1] = cspace;
                 GetSpaces(cspace - 1, move - 1);
@@ -379,7 +384,7 @@ public class GameManager : MonoBehaviour
         if (cspace % 10 != 9 && board[cspace + 1] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 1) % 10, (cspace + 1) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
             {
                 board[cspace + 1] = cspace;
                 GetSpaces(cspace + 1, move - 1);
@@ -393,7 +398,7 @@ public class GameManager : MonoBehaviour
     public void GetAttacks(int cspace, int range)
     {
         IPiece piece = boardManager.boardState.GetPiece(new Vector2Int((cspace) % 10, (cspace) / 10));
-        if (piece != null && ((state == GameState.P1Attack && piece.Type == PieceType.Player2) || (state == GameState.P2Attack && piece.Type == PieceType.Player1))) //Add Wall attack?
+        if (piece != null && ((playerTurn == PlayerTurn.Player1 && piece.Type == PieceType.Player2) || (playerTurn == PlayerTurn.Player2 && piece.Type == PieceType.Player1))) //Add Wall attack?
         {
             board[cspace] = 1;
 
@@ -466,7 +471,7 @@ public class GameManager : MonoBehaviour
             {
                 board[i] = -1;
 
-                if (state.IsSelected())
+                if (gameState == GameState.Selected)
                 {
                     IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
                     if (piece != null && piece.Type == PieceType.Space)
