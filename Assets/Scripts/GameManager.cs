@@ -2,14 +2,16 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-
-
 public class GameManager : MonoBehaviour
 {
-    [Header("Game Objects")]
+    [Header("Managers")]
     [SerializeField]
     private BoardManager boardManager;
 
+    [SerializeField]
+    private ShopManager shopManager;
+
+    [Header("Game Objects")]
     [SerializeField]
     [Tooltip("The Prefab for the Soldier for Player1. Soldier is currently a placeholder for a piece.")]
     private GameObject SoldierPrefabP1;
@@ -88,6 +90,11 @@ public class GameManager : MonoBehaviour
                     // var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
                     // CreatePiece(pieceGridPos, player);
                     // state = state.GetSwitchPlayersTurns();
+                }
+                else if (piece.Type == PieceType.Wall && shopManager.selectedPiece == SelectedPiece.Tnt)
+                { 
+                    boardManager.boardState.SetPiece(null, pieceGridPos);
+                    shopManager.selectedPiece = null;
                 }
                 else
                 {
