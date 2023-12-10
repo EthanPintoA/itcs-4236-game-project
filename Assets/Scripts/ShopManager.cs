@@ -9,9 +9,12 @@ public class ShopManager : MonoBehaviour
         this.selectedPiece = selectedPiece switch
         {
             "Tnt" => SelectedPiece.Tnt,
+            "tank" => SelectedPiece.Tank,
+            "sniper" => SelectedPiece.Sniper,
+            "soldier" => SelectedPiece.Soldier,
             _ => null
         };
-        
+
         if (this.selectedPiece == null)
         {
             Debug.LogError($"Piece {selectedPiece} does not exist");
@@ -29,4 +32,7 @@ public class ShopManager : MonoBehaviour
 public enum SelectedPiece
 {
     Tnt
+    Soldier
+    Sniper
+    Tank
 }
