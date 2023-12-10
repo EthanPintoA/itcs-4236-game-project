@@ -91,10 +91,19 @@ public class GameManager : MonoBehaviour
                     // CreatePiece(pieceGridPos, player);
                     // state = state.GetSwitchPlayersTurns();
                 }
-                else if (piece.Type == PieceType.Wall && shopManager.selectedPiece == SelectedPiece.Tnt)
-                { 
-                    boardManager.boardState.SetPiece(null, pieceGridPos);
-                    shopManager.selectedPiece = null;
+                else if (
+                    piece.Type == PieceType.Wall
+                    && shopManager.selectedPiece == SelectedPiece.Tnt
+                )
+                {
+                    var requiredPiece = GameState.P1Turn == state ? PieceType.Player1 : PieceType.Player2;
+                    if (HasNeighbor(pieceGridPos, requiredPiece))
+                    {
+                        boardManager.boardState.SetPiece(null, pieceGridPos);
+                        shopManager.selectedPiece = null;
+                    } else {
+                        Debug.Log("TNT must be placed next to a piece owned by the current player");
+                    }
                 }
                 else
                 {
@@ -272,6 +281,42 @@ public class GameManager : MonoBehaviour
         }
 
         return gridPos.Value;
+    }
+
+    /// <summary>
+    /// Checks if the player can use the tnt piece at the given position.
+    /// <br/>
+    /// The player can only use the tnt piece if there is a piece owned by the player
+    /// next to the tnt piece.
+    /// </summary>
+    private bool HasNeighbor(Vector2Int gridPos, PieceType player)
+    {
+        var neighborsPosDiff = new Vector2Int[]
+        {
+            new(-1, -1),
+            new(0, -1),
+            new(1, -1),
+            new(-1, 0),
+            new(1, 0),
+            new(-1, 1),
+            new(0, 1),
+            new(1, 1),
+        };
+
+        // The player can only use the tnt piece if there is a piece owned by the player
+        // next to the tnt piece
+        foreach (var posDiff in neighborsPosDiff)
+        {
+            var neighborPos = gridPos + posDiff;
+            var neighborPiece = boardManager.boardState.GetPiece(neighborPos);
+
+            if (neighborPiece != null && neighborPiece.Type == player)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
