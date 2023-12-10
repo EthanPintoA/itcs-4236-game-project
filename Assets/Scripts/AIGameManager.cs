@@ -1,10 +1,11 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
 
 
-public class GameManager : MonoBehaviour
+public class AIGameManager : MonoBehaviour
 {
     [Header("Game Objects")]
     [SerializeField]
@@ -33,7 +34,7 @@ public class GameManager : MonoBehaviour
 
     //During Select, array value indicates the previous space the piece would move from for if we implement a moving animation
     //During Attack, array value simply has 0 for invalid and 1 for valid
-    private int[] board = new int[100];
+    private int[] pboard = new int[100];
 
     //Array to track targets and the number
     //Might be a better way to do this
@@ -48,7 +49,7 @@ public class GameManager : MonoBehaviour
         //Marks avaliable spaces as not selected
         for (int i = 0; i < 100; i++)
         {
-            board[i] = -1;
+            pboard[i] = -1;
         }
     }
 
@@ -66,7 +67,15 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+        if(state == GameState.P2Turn)
+        {
+            Debug.Log("AI Turn");
+
+            state = GameState.P2Selected;
+            AITurn();
+            state = state.GetCurrentTurn().GetSwitchPlayersTurns();
+        }
+        else if (Mouse.current.leftButton.wasPressedThisFrame)
         {
             //reads mouse position and converts to grid position
             var nPiecePos = MousePositionToPiecePosition();
@@ -77,7 +86,7 @@ public class GameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
-            if (state.IsTurn())
+            if (state == GameState.P1Turn)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
@@ -104,7 +113,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-            else if (state.IsSelected())
+            else if (state == GameState.P1Selected)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 var isNotSpace = piece != null && piece.Type != PieceType.Space;
@@ -135,7 +144,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-            else if (state.IsAttack())
+            else if (state == GameState.P1Attack)
             {
                 int gridNum = pieceGridPos.x + (pieceGridPos.y * 10);
                 bool isTargeted = false;
@@ -154,19 +163,10 @@ public class GameManager : MonoBehaviour
                 if (isTargeted)
                 {
                     boardManager.boardState.AttackPiece(selected, pieceGridPos);
-                    var currentPlayer =
-                        (state == GameState.P1Attack) ? PieceType.Player1 : PieceType.Player2;
-                    if (boardManager.DidPlayerWin(currentPlayer))
+                    if (boardManager.DidPlayerWin(PieceType.Player1))
                     {
-                        Debug.Log($"Player {currentPlayer} won!");
-                        if (currentPlayer == PieceType.Player1)
-                        {
-                            SceneManager.LoadScene("P1WinScene");
-                        }
-                        else
-                        {
-                            SceneManager.LoadScene("P2WinScene");
-                        }
+                        Debug.Log($"Player {PieceType.Player1} won!");
+                        SceneManager.LoadScene("P1WinScene");
                     }
                 }
                 
@@ -184,7 +184,7 @@ public class GameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
-            if (state.IsTurn())
+            if (state == GameState.P1Turn)
             {
                 Debug.Log($"Deleting piece at {pieceGridPos}");
 
@@ -203,12 +203,12 @@ public class GameManager : MonoBehaviour
                     Debug.Log("This is not the current player's piece");
                 }
             }
-            else if (state.IsSelected())
+            else if (state == GameState.P1Selected)
             {
                 ClearSpaces();
                 state = state.GetCurrentTurn();
             }
-            else if (state.IsAttack())
+            else if (state == GameState.P1Attack)
             {
                 ClearSpaces();
                 state = state.GetCurrentTurn().GetSwitchPlayersTurns();
@@ -273,9 +273,9 @@ public class GameManager : MonoBehaviour
     public void GetSpaces(int cspace, int move)
     {
         //Set starting space to 0 to avoid backtracking
-        if (board[cspace] < 0)
+        if (pboard[cspace] < 0)
         {
-            board[cspace] = 0;
+            pboard[cspace] = 0;
         }
 
         //Set Space Piece
@@ -291,59 +291,56 @@ public class GameManager : MonoBehaviour
         }
 
         //Up
-        if(cspace > 9 && board[cspace - 10] < 0)
+        if(cspace > 9 && pboard[cspace - 10] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 10) % 10, (cspace - 10) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || npiece.Type == PieceType.Player1)
             {
-                board[cspace - 10] = cspace;
+                pboard[cspace - 10] = cspace;
                 GetSpaces(cspace - 10, move - 1);
             }
         }
 
         //Down
-        if (cspace < 90 && board[cspace + 10] < 0)
+        if (cspace < 90 && pboard[cspace + 10] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 10) % 10, (cspace + 10) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || npiece.Type == PieceType.Player1)
             {
-                board[cspace + 10] = cspace;
+                pboard[cspace + 10] = cspace;
                 GetSpaces(cspace + 10, move - 1);
             }
         }
 
         //Left
-        if (cspace % 10 != 0 && board[cspace - 1] < 0)
+        if (cspace % 10 != 0 && pboard[cspace - 1] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 1) % 10, (cspace - 1) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || npiece.Type == PieceType.Player1)
             {
-                board[cspace - 1] = cspace;
+                pboard[cspace - 1] = cspace;
                 GetSpaces(cspace - 1, move - 1);
             }
         }
 
         //Right
-        if (cspace % 10 != 9 && board[cspace + 1] < 0)
+        if (cspace % 10 != 9 && pboard[cspace + 1] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 1) % 10, (cspace + 1) / 10));
-            if (npiece == null || (state == GameState.P1Selected && npiece.Type == PieceType.Player1) || (state == GameState.P2Selected && npiece.Type == PieceType.Player2))
+            if (npiece == null || npiece.Type == PieceType.Player1)
             {
-                board[cspace + 1] = cspace;
+                pboard[cspace + 1] = cspace;
                 GetSpaces(cspace + 1, move - 1);
             }
         }
     }
 
-    /// <summary>
-    /// Gets all avaliable spaces that a piece can attack and puts a Target on them
-    /// </summary>
     public void GetAttacks(int cspace, int range)
     {
         IPiece piece = boardManager.boardState.GetPiece(new Vector2Int((cspace) % 10, (cspace) / 10));
-        if (piece != null && ((state == GameState.P1Attack && piece.Type == PieceType.Player2) || (state == GameState.P2Attack && piece.Type == PieceType.Player1))) //Add Wall attack?
+        if (piece != null && piece.Type == PieceType.Player2) //Add Wall attack?
         {
-            board[cspace] = 1;
+            pboard[cspace] = 1;
 
             //Add Target Indicator
             var targetPos = (Vector3)boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10));
@@ -354,7 +351,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            board[cspace] = 0;
+            pboard[cspace] = 0;
         }
 
         if (range == 0)
@@ -363,7 +360,7 @@ public class GameManager : MonoBehaviour
         }
 
         //Up
-        if (cspace > 9 && board[cspace - 10] < 0)
+        if (cspace > 9 && pboard[cspace - 10] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 10) % 10, (cspace - 10) / 10));
             if (npiece == null || npiece.Type != PieceType.Wall)
@@ -373,7 +370,7 @@ public class GameManager : MonoBehaviour
         }
 
         //Down
-        if (cspace < 90 && board[cspace + 10] < 0)
+        if (cspace < 90 && pboard[cspace + 10] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 10) % 10, (cspace + 10) / 10));
             if (npiece == null || npiece.Type != PieceType.Wall)
@@ -383,7 +380,7 @@ public class GameManager : MonoBehaviour
         }
 
         //Left
-        if (cspace % 10 != 0 && board[cspace - 1] < 0)
+        if (cspace % 10 != 0 && pboard[cspace - 1] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 1) % 10, (cspace - 1) / 10));
             if (npiece == null || npiece.Type != PieceType.Wall)
@@ -393,7 +390,7 @@ public class GameManager : MonoBehaviour
         }
 
         //Right
-        if (cspace % 10 != 9 && board[cspace + 1] < 0)
+        if (cspace % 10 != 9 && pboard[cspace + 1] < 0)
         {
             IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 1) % 10, (cspace + 1) / 10));
             if (npiece == null || npiece.Type != PieceType.Wall)
@@ -410,9 +407,9 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < 100; i++)
         {
-            if(board[i] >= 0)
+            if(pboard[i] >= 0)
             {
-                board[i] = -1;
+                pboard[i] = -1;
 
                 if (state.IsSelected())
                 {
@@ -431,5 +428,235 @@ public class GameManager : MonoBehaviour
             targets[i] = null;
         }
         targetnum = 0;
+    }
+
+    public void AITurn()
+    {
+        int pcount = 0;
+        IPiece[] pieces = new IPiece[100];
+        int[] piecespaces = new int[100];
+
+        int epcount = 0;
+        int[] epiecespaces = new int[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
+            if (piece != null && piece.Type == PieceType.Player2)
+            {
+                Debug.Log("Piece: " + pcount);
+                Debug.Log("Space " + i);
+
+                pieces[pcount] = piece;
+                piecespaces[pcount] = i;
+                pcount++;
+            }
+            else if (piece != null && piece.Type == PieceType.Player1)
+            {
+                Debug.Log("EPiece: " + epcount);
+                Debug.Log("Space " + i);
+                epiecespaces[epcount] = i;
+                epcount++;
+            }
+        }
+
+        Debug.Log("Pcount: " + pcount);
+        Debug.Log("EPcount " + epcount);
+
+        bool[] piecemoved = new bool[pcount];
+        for (int i = 0; i < pcount; i++)
+        {
+            piecemoved[i] = false;
+        }
+
+        bool[] piecedefeated = new bool[epcount];
+        for (int i = 0; i < epcount; i++)
+        {
+            piecedefeated[i] = false;
+        }
+
+        int[][][] paths = new int[pcount][][];
+        int[][] distances = new int[pcount][];
+
+        for (int i = 0; i < pcount; i++)
+        {
+            paths[i] = new int[epcount][];
+            distances[i] = new int[epcount];
+        }
+
+        for (int i = 0; i < pcount; i++)
+        {
+            for (int j = 0; j < epcount; j++)
+            {
+                paths[i][j] = GetPath(piecespaces[i], epiecespaces[j]);
+                distances[i][j] = GetDistance(piecespaces[i], epiecespaces[j], paths[i][j]);
+            }
+        }
+
+        while (piecemoved.Any(x => x == false))
+        {
+            int mindis = 100;
+            int minpiece = -1;
+            int minepiece = -1;
+
+            for (int i = 0; i < pcount; i++)
+            {
+                if (!piecemoved[i])
+                {
+                    for (int j = 0; j < epcount; j++)
+                    {
+                        if (!piecedefeated[j])
+                        {
+                            if (distances[i][j] < mindis)
+                            {
+                                mindis = distances[i][j];
+                                minpiece = i;
+                                minepiece = j;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Debug.Log("Minpiece: " + minpiece);
+            Debug.Log("MinEpiece: " + minepiece);
+
+            int move = pieces[minpiece].Movement;
+            int distance = distances[minpiece][minepiece];
+
+            Debug.Log("MoveDis: " + distance);
+
+            if (move >= distance)
+            {
+                move = distance - 1;
+            }
+
+            int pspace = piecespaces[minpiece];
+            while (move > 0)
+            {
+                int cspace = pspace;
+                for (int i = 0; i < move; i++)
+                {
+                    //Debug.Log("CSpace: " + cspace);
+                    cspace = paths[minpiece][minepiece][cspace];
+                }
+
+                IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(cspace % 10, cspace / 10));
+                if (piece == null)
+                {
+                    Debug.Log("Move: " + minpiece + " " + pspace + " " + cspace);
+                    boardManager.boardState.MovePiece(new Vector2Int(pspace % 10, pspace / 10), new Vector2Int(cspace % 10, cspace / 10));
+                    pspace = cspace;
+                    break;
+                }
+                else
+                {
+                    move--;
+                }
+            }
+
+            if (move + pieces[minpiece].Range >= distance)
+            {
+                int espace = epiecespaces[minepiece];
+
+                Debug.Log("Attack: " + minpiece + " " + pspace + " " + espace);
+
+                boardManager.boardState.AttackPiece(new Vector2Int(pspace % 10, pspace / 10), new Vector2Int(espace % 10, espace / 10));
+                if (boardManager.DidPlayerWin(PieceType.Player2))
+                {
+                    Debug.Log($"Player {PieceType.Player2} won!");
+                    SceneManager.LoadScene("P2WinScene");
+                }
+
+                if (boardManager.boardState.GetPiece(new Vector2Int(espace % 10, espace / 10)) == null)
+                {
+                    piecedefeated[minepiece] = true;
+                }
+            }
+
+            piecemoved[minpiece] = true;
+        }
+    }
+    public int[] GetPath(int cspace, int espace)
+    {
+        int[] board = new int[100];
+
+        for (int i = 0; i < 100; i++)
+        {
+            board[i] = -1;
+        }
+
+        board[espace] = 0;
+
+        GetPathRecursive(cspace, espace, board);
+
+        return board;
+    }
+    public void GetPathRecursive(int cspace, int espace, int[] board)
+    {
+        if (cspace == espace)
+        {
+            return;
+        }
+
+        //Up
+        if (espace > 9 && board[espace - 10] < 0)
+        {
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace - 10) % 10, (espace - 10) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                board[espace - 10] = espace;
+                GetPathRecursive(cspace, espace - 10, board);
+            }
+        }
+
+        //Down
+        if (espace < 90 && board[espace + 10] < 0)
+        {
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace + 10) % 10, (espace + 10) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                board[espace + 10] = espace;
+                GetPathRecursive(cspace, espace + 10, board);
+            }
+        }
+
+        //Left
+        if (espace % 10 != 0 && board[espace - 1] < 0)
+        {
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace - 1) % 10, (espace - 1) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                board[espace - 1] = espace;
+                GetPathRecursive(cspace, espace - 1, board);
+            }
+        }
+
+        //Right
+        if (espace % 10 != 9 && board[espace + 1] < 0)
+        {
+            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace + 1) % 10, (espace + 1) / 10));
+            if (npiece == null || npiece.Type != PieceType.Wall)
+            {
+                board[espace + 1] = espace;
+                GetPathRecursive(cspace, espace + 1, board);
+            }
+        }
+    }
+
+    public int GetDistance(int cspace, int espace, int[] board)
+    {
+        int distance = 0;
+        Debug.Log("cspace: " + cspace);
+        Debug.Log("espace: " + espace);
+
+        while (cspace != espace)
+        {
+            cspace = board[cspace];
+            distance++;
+        }
+
+        Debug.Log("distance: " + distance);
+        return distance;
     }
 }

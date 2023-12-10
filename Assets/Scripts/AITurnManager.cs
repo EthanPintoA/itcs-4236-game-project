@@ -1,9 +1,9 @@
 using UnityEngine;
 using TMPro;
 
-public class TurnManager : MonoBehaviour
+public class AITurnManager : MonoBehaviour
 {
-    public GameManager gameManager;
+    public AIGameManager gameManager;
     public TMP_Text playerTurnText;
 
     // To keep track when the state changes
