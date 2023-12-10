@@ -31,8 +31,8 @@ public class ShopManager : MonoBehaviour
 /// </summary>
 public enum SelectedPiece
 {
-    Tnt
-    Soldier
-    Sniper
+    Tnt,
+    Soldier,
+    Sniper,
     Tank
 }
