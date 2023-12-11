@@ -330,7 +330,7 @@ public class GameManager : MonoBehaviour
     private Vector2Int[] GetMovementOptions(IPiece piece, Vector2Int pieceGridPos)
     {
         var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
-        var PossiblePositions = new PossiblePositions(grid, 10, 10, piece.Movement).GetPositions(pieceGridPos);
+        var PossiblePositions = new PossiblePositions(grid, 10, 10, piece.Movement, pieceGridPos).GetPositions();
 
         // Remove the current position. We don't want to move to the same position.
         PossiblePositions = PossiblePositions.Where(pos => pos != pieceGridPos).ToArray();
@@ -364,14 +364,12 @@ public class GameManager : MonoBehaviour
     private Vector2Int[] GetAttackOptions(IPiece piece, Vector2Int pieceGridPos)
     {
         var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
-        var PossiblePositions = new PossiblePositions(grid, 10, 10, piece.Range).GetPositions(pieceGridPos);
+        var PossiblePositions = new TargetPossiblePositions(grid, 10, 10, piece.Range, pieceGridPos).GetPositions();
 
         // Remove positions that have a piece. We don't want to move on top of a piece.
         PossiblePositions = PossiblePositions
             // Can't attack a space
             .Where(pos => boardManager.boardState.GetPiece(pos) != null)
-            // Can't attack a wall
-            .Where(pos => boardManager.boardState.GetPiece(pos) is not Wall)
             // Can't attack your own piece
             .Where(pos => boardManager.boardState.GetPiece(pos).Type != piece.Type)
             .ToArray();

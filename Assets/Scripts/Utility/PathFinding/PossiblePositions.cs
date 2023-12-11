@@ -12,16 +12,18 @@ public class PossiblePositions
     /// <summary>
     /// A grid of obstacles. True means there is an obstacle.
     /// </summary>
-    private readonly bool[,] aStarGrid;
-    private readonly int maxTravelCost;
+    protected readonly bool[,] aStarGrid;
+    protected readonly int maxTravelCost;
+    protected readonly Vector2Int startPos;
 
-    public PossiblePositions(bool[,] aStarGrid, int maxTravelCost)
+    public PossiblePositions(bool[,] aStarGrid, int maxTravelCost, Vector2Int startPos)
     {
         this.aStarGrid = aStarGrid;
         this.maxTravelCost = maxTravelCost;
+        this.startPos = startPos;
     }
 
-    public PossiblePositions(bool[] aStarGrid, int width, int height, int maxTravelCost)
+    public PossiblePositions(bool[] aStarGrid, int width, int height, int maxTravelCost, Vector2Int startPos)
     {
         this.aStarGrid = new bool[width, height];
 
@@ -31,12 +33,13 @@ public class PossiblePositions
         }
 
         this.maxTravelCost = maxTravelCost;
+        this.startPos = startPos;
     }
 
     /// <summary>
     /// Returns a list of positions where travel cost is less than or equal to the max travel cost.
     /// </summary>
-    public Vector2Int[] GetPositions(Vector2Int startPos)
+    public Vector2Int[] GetPositions()
     {
         var startNode = new Node(null, startPos);
 
@@ -51,7 +54,7 @@ public class PossiblePositions
 
             closedSet.Add(currentNode);
 
-            var adjacentNodes = GetAdjacentNodes(currentNode, aStarGrid);
+            var adjacentNodes = GetAdjacentNodes(currentNode);
 
             foreach (var neighbor in adjacentNodes)
             {
@@ -80,7 +83,7 @@ public class PossiblePositions
     /// <summary>
     /// Returns a list of adjacent nodes that do not contain obstacles.
     /// </summary>
-    public static List<Node> GetAdjacentNodes(Node node, bool[,] aStarGrid)
+    public virtual List<Node> GetAdjacentNodes(Node node)
     {
         var adjacentNodeDirections = new Vector2Int[]
         {
