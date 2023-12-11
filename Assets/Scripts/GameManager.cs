@@ -35,6 +35,8 @@ public class GameManager : MonoBehaviour
     private GameObject TankPrefabP2;
     [SerializeField]
     private GameObject HelicopterPrefabP1;
+    [SerializeField]
+    private GameObject HelicopterPrefabP2;
 
     [SerializeField]
     [Tooltip("The Prefab for the Target. Denotes which spaces a piece can target with attacks.")]
@@ -55,14 +57,17 @@ public class GameManager : MonoBehaviour
     public Sprite movedTank;
     public Sprite movedSniper;
     public Sprite movedKing;
+    public Sprite movedHeli;
     public Sprite P1Soldier;
     public Sprite P1Tank;
     public Sprite P1Sniper;
     public Sprite P1King;
+    public Sprite P1Heli;
     public Sprite P2Soldier;
     public Sprite P2Tank;
     public Sprite P2Sniper;
     public Sprite P2King;
+    public Sprite P2Heli;
 
     [HideInInspector]
     public PlayerTurn playerTurn;
@@ -398,7 +403,7 @@ public class GameManager : MonoBehaviour
             else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P2Coins.text) >= 100 || walletOverride))
             {
                 // FIXME: Use the P2 helicopter prefab
-                var helicopterObj = Instantiate(HelicopterPrefabP1, pieceGlobalPos, Quaternion.identity);
+                var helicopterObj = Instantiate(HelicopterPrefabP2, pieceGlobalPos, Quaternion.identity);
                 boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
                 if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 100).ToString(); }
             }
@@ -574,6 +579,10 @@ public class GameManager : MonoBehaviour
         {
             piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedKing;
         }
+        else if (piece is Helicopter)
+        {
+            piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedHeli;
+        }
     }
     public void switchTurn()
     {
@@ -598,6 +607,10 @@ public class GameManager : MonoBehaviour
                 {
                     piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1King;
                 }
+                else if (piece is Helicopter)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1Heli;
+                }
             }
             else if (player == PieceType.Player2)
             {
@@ -616,6 +629,10 @@ public class GameManager : MonoBehaviour
                 else if (piece is King)
                 {
                     piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2King;
+                }
+                else if (piece is Helicopter)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2Heli;
                 }
             }
         }
