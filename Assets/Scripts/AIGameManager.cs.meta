@@ -3,10 +3,14 @@ guid: f4d164f48acbb114ea3a53ae627c82ad
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
+<<<<<<< Updated upstream
   defaultReferences:
   - boardManager: {instanceID: 0}
   - SoldierPrefab: {instanceID: 0}
   - SpacePrefab: {instanceID: 0}
+=======
+  defaultReferences: []
+>>>>>>> Stashed changes
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

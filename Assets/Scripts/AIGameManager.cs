@@ -28,7 +28,13 @@ public class AIGameManager : MonoBehaviour
     private GameObject TargetPrefab;
 
     [HideInInspector]
+<<<<<<< Updated upstream
     public GameState state;
+=======
+    public PlayerTurn playerTurn;
+    [HideInInspector]
+    public GameState? gameState;
+>>>>>>> Stashed changes
 
     private Vector2Int selected;
 
@@ -44,7 +50,12 @@ public class AIGameManager : MonoBehaviour
 
     void Awake()
     {
+<<<<<<< Updated upstream
         state = GameState.P1Turn;
+=======
+        playerTurn = PlayerTurn.Player1;
+        gameState = null;
+>>>>>>> Stashed changes
 
         //Marks avaliable spaces as not selected
         for (int i = 0; i < 100; i++)
@@ -67,6 +78,7 @@ public class AIGameManager : MonoBehaviour
 
     void Update()
     {
+<<<<<<< Updated upstream
         if(state == GameState.P2Turn)
         {
             Debug.Log("AI Turn");
@@ -74,6 +86,16 @@ public class AIGameManager : MonoBehaviour
             state = GameState.P2Selected;
             AITurn();
             state = state.GetCurrentTurn().GetSwitchPlayersTurns();
+=======
+        if(playerTurn == PlayerTurn.Player2 && gameState == null)
+        {
+            Debug.Log("AI Turn");
+
+            gameState = GameState.Selected;
+            AITurn();
+            gameState = null;
+            playerTurn.SwitchPlayers();
+>>>>>>> Stashed changes
         }
         else if (Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -86,7 +108,11 @@ public class AIGameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
+<<<<<<< Updated upstream
             if (state == GameState.P1Turn)
+=======
+            if (gameState == null)
+>>>>>>> Stashed changes
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
@@ -104,7 +130,11 @@ public class AIGameManager : MonoBehaviour
                     if (ValidPieceType(piece))
                     {
                         selected = pieceGridPos;
+<<<<<<< Updated upstream
                         state = state.GetNextState();
+=======
+                        gameState = GameState.Selected;
+>>>>>>> Stashed changes
                         GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
                     }
                     else
@@ -113,7 +143,11 @@ public class AIGameManager : MonoBehaviour
                     }
                 }
             }
+<<<<<<< Updated upstream
             else if (state == GameState.P1Selected)
+=======
+            else if (gameState == GameState.Selected)
+>>>>>>> Stashed changes
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 var isNotSpace = piece != null && piece.Type != PieceType.Space;
@@ -122,7 +156,12 @@ public class AIGameManager : MonoBehaviour
                 if ((piece == null || isNotSpace) && !sameSpace)
                 {
                     ClearSpaces();
+<<<<<<< Updated upstream
                     state = state.GetCurrentTurn();
+=======
+                    gameState = null;
+                    playerTurn.SwitchPlayers();
+>>>>>>> Stashed changes
                 }
                 //If an avaliable space or current space is selected
                 else
@@ -134,17 +173,30 @@ public class AIGameManager : MonoBehaviour
                         selected = pieceGridPos;
                     }
                     ClearSpaces();
+<<<<<<< Updated upstream
                     state = state.GetNextState();
+=======
+                    gameState = GameState.Attack;
+>>>>>>> Stashed changes
                     GetAttacks(pieceGridPos.x + (pieceGridPos.y * 10), piece.Range);
 
                     if (targetnum == 0)
                     {
                         ClearSpaces();
+<<<<<<< Updated upstream
                         state = state.GetCurrentTurn().GetSwitchPlayersTurns();
                     }
                 }
             }
             else if (state == GameState.P1Attack)
+=======
+                        gameState = null;
+                        playerTurn.SwitchPlayers();
+                    }
+                }
+            }
+            else if (gameState == GameState.Attack)
+>>>>>>> Stashed changes
             {
                 int gridNum = pieceGridPos.x + (pieceGridPos.y * 10);
                 bool isTargeted = false;
@@ -171,7 +223,12 @@ public class AIGameManager : MonoBehaviour
                 }
                 
                 ClearSpaces();
+<<<<<<< Updated upstream
                 state = state.GetNextState().GetSwitchPlayersTurns();
+=======
+                gameState = null;
+                playerTurn.SwitchPlayers();
+>>>>>>> Stashed changes
             }
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
@@ -184,7 +241,11 @@ public class AIGameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
+<<<<<<< Updated upstream
             if (state == GameState.P1Turn)
+=======
+            if (gameState == null)
+>>>>>>> Stashed changes
             {
                 Debug.Log($"Deleting piece at {pieceGridPos}");
 
@@ -196,13 +257,19 @@ public class AIGameManager : MonoBehaviour
                 else if (ValidPieceType(piece))
                 {
                     boardManager.boardState.SetPiece(null, pieceGridPos);
+<<<<<<< Updated upstream
                     state = state.GetSwitchPlayersTurns();
+=======
+                    gameState = null;
+                    playerTurn.SwitchPlayers();
+>>>>>>> Stashed changes
                 }
                 else
                 {
                     Debug.Log("This is not the current player's piece");
                 }
             }
+<<<<<<< Updated upstream
             else if (state == GameState.P1Selected)
             {
                 ClearSpaces();
@@ -212,6 +279,18 @@ public class AIGameManager : MonoBehaviour
             {
                 ClearSpaces();
                 state = state.GetCurrentTurn().GetSwitchPlayersTurns();
+=======
+            else if (gameState == GameState.Selected)
+            {
+                ClearSpaces();
+                gameState = null;
+            }
+            else if (gameState == GameState.Attack)
+            {
+                ClearSpaces();
+                gameState = null;
+                playerTurn.SwitchPlayers();
+>>>>>>> Stashed changes
             }
         }
     }
@@ -221,8 +300,13 @@ public class AIGameManager : MonoBehaviour
     /// </summary>
     private bool ValidPieceType(IPiece piece)
     {
+<<<<<<< Updated upstream
         return (state == GameState.P1Turn && piece.Type == PieceType.Player1)
             || (state == GameState.P2Turn && piece.Type == PieceType.Player2);
+=======
+        return (playerTurn == PlayerTurn.Player1 && piece.Type == PieceType.Player1)
+            || (playerTurn == PlayerTurn.Player2 && piece.Type == PieceType.Player2);
+>>>>>>> Stashed changes
     }
 
     /// <summary>
@@ -411,7 +495,11 @@ public class AIGameManager : MonoBehaviour
             {
                 pboard[i] = -1;
 
+<<<<<<< Updated upstream
                 if (state.IsSelected())
+=======
+                if (gameState == GameState.Selected)
+>>>>>>> Stashed changes
                 {
                     IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
                     if (piece != null && piece.Type == PieceType.Space)
@@ -444,25 +532,34 @@ public class AIGameManager : MonoBehaviour
             IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
             if (piece != null && piece.Type == PieceType.Player2)
             {
+<<<<<<< Updated upstream
                 Debug.Log("Piece: " + pcount);
                 Debug.Log("Space " + i);
 
+=======
+>>>>>>> Stashed changes
                 pieces[pcount] = piece;
                 piecespaces[pcount] = i;
                 pcount++;
             }
             else if (piece != null && piece.Type == PieceType.Player1)
             {
+<<<<<<< Updated upstream
                 Debug.Log("EPiece: " + epcount);
                 Debug.Log("Space " + i);
+=======
+>>>>>>> Stashed changes
                 epiecespaces[epcount] = i;
                 epcount++;
             }
         }
 
+<<<<<<< Updated upstream
         Debug.Log("Pcount: " + pcount);
         Debug.Log("EPcount " + epcount);
 
+=======
+>>>>>>> Stashed changes
         bool[] piecemoved = new bool[pcount];
         for (int i = 0; i < pcount; i++)
         {
@@ -518,6 +615,7 @@ public class AIGameManager : MonoBehaviour
                 }
             }
 
+<<<<<<< Updated upstream
             Debug.Log("Minpiece: " + minpiece);
             Debug.Log("MinEpiece: " + minepiece);
 
@@ -526,6 +624,11 @@ public class AIGameManager : MonoBehaviour
 
             Debug.Log("MoveDis: " + distance);
 
+=======
+            int move = pieces[minpiece].Movement;
+            int distance = distances[minpiece][minepiece];
+
+>>>>>>> Stashed changes
             if (move >= distance)
             {
                 move = distance - 1;
@@ -537,14 +640,20 @@ public class AIGameManager : MonoBehaviour
                 int cspace = pspace;
                 for (int i = 0; i < move; i++)
                 {
+<<<<<<< Updated upstream
                     //Debug.Log("CSpace: " + cspace);
+=======
+>>>>>>> Stashed changes
                     cspace = paths[minpiece][minepiece][cspace];
                 }
 
                 IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(cspace % 10, cspace / 10));
                 if (piece == null)
                 {
+<<<<<<< Updated upstream
                     Debug.Log("Move: " + minpiece + " " + pspace + " " + cspace);
+=======
+>>>>>>> Stashed changes
                     boardManager.boardState.MovePiece(new Vector2Int(pspace % 10, pspace / 10), new Vector2Int(cspace % 10, cspace / 10));
                     pspace = cspace;
                     break;
@@ -559,8 +668,11 @@ public class AIGameManager : MonoBehaviour
             {
                 int espace = epiecespaces[minepiece];
 
+<<<<<<< Updated upstream
                 Debug.Log("Attack: " + minpiece + " " + pspace + " " + espace);
 
+=======
+>>>>>>> Stashed changes
                 boardManager.boardState.AttackPiece(new Vector2Int(pspace % 10, pspace / 10), new Vector2Int(espace % 10, espace / 10));
                 if (boardManager.DidPlayerWin(PieceType.Player2))
                 {
@@ -647,8 +759,11 @@ public class AIGameManager : MonoBehaviour
     public int GetDistance(int cspace, int espace, int[] board)
     {
         int distance = 0;
+<<<<<<< Updated upstream
         Debug.Log("cspace: " + cspace);
         Debug.Log("espace: " + espace);
+=======
+>>>>>>> Stashed changes
 
         while (cspace != espace)
         {
@@ -656,7 +771,10 @@ public class AIGameManager : MonoBehaviour
             distance++;
         }
 
+<<<<<<< Updated upstream
         Debug.Log("distance: " + distance);
+=======
+>>>>>>> Stashed changes
         return distance;
     }
 }
