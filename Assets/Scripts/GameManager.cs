@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -38,9 +39,14 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     [Tooltip("The Prefab for the Space. Denotes which spaces a piece can move to.")]
     private GameObject TargetPrefab;
-    [Header("Player wallets")]
+
+    [SerializeField]
+    [Tooltip("The parent object for the spaces and targets.")]
+    private GameObject TempEntitiesParent;
+
     public TMP_Text P1Coins;
     public TMP_Text P2Coins;
+
     [HideInInspector]
     public PlayerTurn playerTurn;
     [HideInInspector]
@@ -49,26 +55,11 @@ public class GameManager : MonoBehaviour
 
     private Vector2Int selected;
 
-    //During Select, array value indicates the previous space the piece would move from for if we implement a moving animation
-    //During Attack, array value simply has 0 for invalid and 1 for valid
-    private int[] board = new int[100];
-
-    //Array to track targets and the number
-    //Might be a better way to do this
-    private GameObject[] targets = new GameObject[100];
-    private int targetnum = 0;
-
 
     void Awake()
     {
         playerTurn = PlayerTurn.Player1;
         gameState = null;
-
-        //Marks avaliable spaces as not selected
-        for (int i = 0; i < 100; i++)
-        {
-            board[i] = -1;
-        }
     }
 
     void Start()
@@ -153,7 +144,8 @@ public class GameManager : MonoBehaviour
                     {
                         selected = pieceGridPos;
                         gameState = GameState.Selected;
-                        GetSpaces(pieceGridPos.x + (pieceGridPos.y * 10), piece.Movement);
+                        var PossiblePositions = GetMovementOptions(piece, pieceGridPos);
+                        CreateSpaces(PossiblePositions);
                     }
                     else
                     {
@@ -163,71 +155,80 @@ public class GameManager : MonoBehaviour
             }
             else if (gameState == GameState.Selected)
             {
-                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
-                var isNotSpace = piece != null && piece.Type != PieceType.Space;
-                var sameSpace = pieceGridPos == selected;
-
-                if ((piece == null || isNotSpace) && !sameSpace)
+                var didSelectSpace = false;
+                foreach (Transform child in TempEntitiesParent.transform)
                 {
-                    ClearSpaces();
-                    gameState = null;
+                    var childGridPos = boardManager.WorldPosToGridPos(child.position);
+                    // childGridPos should never be null
+                    if (childGridPos.Value == pieceGridPos)
+                    {
+                        didSelectSpace = true;
+                    }
                 }
-                //If an avaliable space or current space is selected
-                else
+
+                var didSelectSamePos = pieceGridPos == selected;
+                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+
+                if (didSelectSpace || didSelectSamePos)
                 {
-                    if (!sameSpace)
+                    if (!didSelectSamePos)
                     {
                         boardManager.boardState.MovePiece(selected, pieceGridPos);
+                        // Update piece since was destroyed and recreated
                         piece = boardManager.boardState.GetPiece(pieceGridPos);
                         selected = pieceGridPos;
                     }
-                    ClearSpaces();
-                    gameState = GameState.Attack;
-                    GetAttacks(pieceGridPos.x + (pieceGridPos.y * 10), piece.Range);
 
-                    if (targetnum == 0)
+                    ClearSpacesAndTargets();
+                    gameState = GameState.Attack;
+                    var PossiblePositions = GetAttackOptions(piece, pieceGridPos);
+
+                    if (PossiblePositions.Length == 0)
                     {
-                        ClearSpaces();
+                        ClearSpacesAndTargets();
                         gameState = null;
                         playerTurn.SwitchPlayers();
+                    } else {
+                        CreateTargets(PossiblePositions);
                     }
+                }
+                else
+                {
+                    ClearSpacesAndTargets();
+                    gameState = null;
                 }
             }
             else if (gameState == GameState.Attack)
             {
-                int gridNum = pieceGridPos.x + (pieceGridPos.y * 10);
-                bool isTargeted = false;
-                for (int i = 0; i < targetnum; i++)
+                foreach (Transform child in TempEntitiesParent.transform)
                 {
-                    Vector2Int targetGridPos = (Vector2Int)boardManager.WorldPosToGridPos((Vector2)targets[i].transform.position);
-                    int targetNum = targetGridPos.x + (targetGridPos.y * 10);
-                    if (gridNum == targetNum)
+                    var childGridPos = boardManager.WorldPosToGridPos(child.position);
+                    if (!childGridPos.HasValue)
                     {
-                        isTargeted = true;
-                        break;
+                        Debug.LogError($"Target {child.name} is out of bounds");
+                        continue;
                     }
-                }
-
-                //If a targeted space is selected, attack piece
-                if (isTargeted)
-                {
-                    boardManager.boardState.AttackPiece(selected, pieceGridPos);
-                    var currentPlayer = playerTurn.GetPlayerPiece();
-                    if (boardManager.DidPlayerWin(currentPlayer))
+                    //If a targetable piece is selected, attack it
+                    else if (childGridPos.Value == pieceGridPos)
                     {
-                        Debug.Log($"Player {currentPlayer} won!");
-                        if (currentPlayer == PieceType.Player1)
+                        boardManager.boardState.AttackPiece(selected, pieceGridPos);
+                        var currentPlayer = playerTurn.GetPlayerPiece();
+                        if (boardManager.DidPlayerWin(currentPlayer))
                         {
-                            SceneManager.LoadScene("P1WinScene");
-                        }
-                        else
-                        {
-                            SceneManager.LoadScene("P2WinScene");
+                            Debug.Log($"Player {currentPlayer} won!");
+                            if (currentPlayer == PieceType.Player1)
+                            {
+                                SceneManager.LoadScene("P1WinScene");
+                            }
+                            else
+                            {
+                                SceneManager.LoadScene("P2WinScene");
+                            }
                         }
                     }
                 }
-
-                ClearSpaces();
+                
+                ClearSpacesAndTargets();
                 gameState = null;
                 playerTurn.SwitchPlayers();
             }
@@ -264,12 +265,12 @@ public class GameManager : MonoBehaviour
             }
             else if (gameState == GameState.Selected)
             {
-                ClearSpaces();
+                ClearSpacesAndTargets();
                 gameState = null;
             }
             else if (gameState == GameState.Attack)
             {
-                ClearSpaces();
+                ClearSpacesAndTargets();
                 gameState = null;
                 playerTurn.SwitchPlayers();
             }
@@ -396,168 +397,66 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Gets all avaliable spaces that a piece can move to and puts a Space piece on them
+    /// Gets the possible positions for a piece to move to.
     /// </summary>
-    public void GetSpaces(int cspace, int move)
+    private Vector2Int[] GetMovementOptions(IPiece piece, Vector2Int pieceGridPos)
     {
-        //Set starting space to 0 to avoid backtracking
-        if (board[cspace] < 0)
-        {
-            board[cspace] = 0;
-        }
+        var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
+        var PossiblePositions = new PossiblePositions(grid, 10, 10, piece.Movement, pieceGridPos).GetPositions();
 
-        //Set Space Piece
-        if (boardManager.boardState.GetPiece(new Vector2Int(cspace % 10, cspace / 10)) == null)
-        {
-            var spaceObj = Instantiate(SpacePrefab, boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10)), Quaternion.identity);
-            boardManager.boardState.SetPiece(new Space(spaceObj), new Vector2Int(cspace % 10, cspace / 10));
-        }
+        // Remove the current position. We don't want to move to the same position.
+        PossiblePositions = PossiblePositions.Where(pos => pos != pieceGridPos).ToArray();
 
-        if (move == 0)
-        {
-            return;
-        }
+        // Remove positions that have a piece. We don't want to move on top of a piece.
+        PossiblePositions = PossiblePositions.Where(pos => boardManager.boardState.GetPiece(pos) == null).ToArray();
 
-        //Up
-        if (cspace > 9 && board[cspace - 10] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 10) % 10, (cspace - 10) / 10));
-            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
-            {
-                board[cspace - 10] = cspace;
-                GetSpaces(cspace - 10, move - 1);
-            }
-        }
-
-        //Down
-        if (cspace < 90 && board[cspace + 10] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 10) % 10, (cspace + 10) / 10));
-            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
-            {
-                board[cspace + 10] = cspace;
-                GetSpaces(cspace + 10, move - 1);
-            }
-        }
-
-        //Left
-        if (cspace % 10 != 0 && board[cspace - 1] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 1) % 10, (cspace - 1) / 10));
-            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
-            {
-                board[cspace - 1] = cspace;
-                GetSpaces(cspace - 1, move - 1);
-            }
-        }
-
-        //Right
-        if (cspace % 10 != 9 && board[cspace + 1] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 1) % 10, (cspace + 1) / 10));
-            if (npiece == null || (playerTurn == PlayerTurn.Player1 && npiece.Type == PieceType.Player1) || (playerTurn == PlayerTurn.Player2 && npiece.Type == PieceType.Player2))
-            {
-                board[cspace + 1] = cspace;
-                GetSpaces(cspace + 1, move - 1);
-            }
-        }
+        return PossiblePositions;
     }
 
     /// <summary>
-    /// Gets all avaliable spaces that a piece can attack and puts a Target on them
+    /// Creates spaces at the given positions.
     /// </summary>
-    public void GetAttacks(int cspace, int range)
+    private void CreateSpaces(Vector2Int[] positions)
     {
-        IPiece piece = boardManager.boardState.GetPiece(new Vector2Int((cspace) % 10, (cspace) / 10));
-        if (piece != null && ((playerTurn == PlayerTurn.Player1 && piece.Type == PieceType.Player2) || (playerTurn == PlayerTurn.Player2 && piece.Type == PieceType.Player1))) //Add Wall attack?
+        foreach (var pos in positions)
         {
-            board[cspace] = 1;
-
-            //Add Target Indicator
-            var targetPos = (Vector3)boardManager.GridPosToWorldPos(new Vector2Int(cspace % 10, cspace / 10));
-            targetPos.z = -1; // So that the target is in front of the piece
-            var targetObj = Instantiate(TargetPrefab, targetPos, Quaternion.identity);
-            targets[targetnum] = targetObj;
-            targetnum++;
-        }
-        else
-        {
-            board[cspace] = 0;
-        }
-
-        if (range == 0)
-        {
-            return;
-        }
-
-        //Up
-        if (cspace > 9 && board[cspace - 10] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 10) % 10, (cspace - 10) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                GetAttacks(cspace - 10, range - 1);
-            }
-        }
-
-        //Down
-        if (cspace < 90 && board[cspace + 10] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 10) % 10, (cspace + 10) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                GetAttacks(cspace + 10, range - 1);
-            }
-        }
-
-        //Left
-        if (cspace % 10 != 0 && board[cspace - 1] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace - 1) % 10, (cspace - 1) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                GetAttacks(cspace - 1, range - 1);
-            }
-        }
-
-        //Right
-        if (cspace % 10 != 9 && board[cspace + 1] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((cspace + 1) % 10, (cspace + 1) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                GetAttacks(cspace + 1, range - 1);
-            }
+            var spaceWorldPos = boardManager.GridPosToWorldPos(pos);
+            Instantiate(SpacePrefab, spaceWorldPos, Quaternion.identity, TempEntitiesParent.transform);
         }
     }
 
-    /// <summary>
-    /// Clears the board array and all Space pieces
-    /// </summary>
-    public void ClearSpaces()
+    private void ClearSpacesAndTargets()
     {
-        for (int i = 0; i < 100; i++)
+        foreach (Transform child in TempEntitiesParent.transform)
         {
-            if (board[i] >= 0)
-            {
-                board[i] = -1;
-
-                if (gameState == GameState.Selected)
-                {
-                    IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
-                    if (piece != null && piece.Type == PieceType.Space)
-                    {
-                        boardManager.boardState.SetPiece(null, new Vector2Int(i % 10, i / 10));
-                    }
-                }
-            }
+            Destroy(child.gameObject);
         }
+    }
 
-        for (int i = 0; i < targetnum; i++)
+    private Vector2Int[] GetAttackOptions(IPiece piece, Vector2Int pieceGridPos)
+    {
+        var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
+        var PossiblePositions = new TargetPossiblePositions(grid, 10, 10, piece.Range, pieceGridPos).GetPositions();
+
+        // Remove positions that have a piece. We don't want to move on top of a piece.
+        PossiblePositions = PossiblePositions
+            // Can't attack a space
+            .Where(pos => boardManager.boardState.GetPiece(pos) != null)
+            // Can't attack your own piece
+            .Where(pos => boardManager.boardState.GetPiece(pos).Type != piece.Type)
+            .ToArray();
+
+        return PossiblePositions;
+    }
+
+    private void CreateTargets(Vector2Int[] positions)
+    {
+        foreach (var pos in positions)
         {
-            Object.Destroy(targets[i]);
-            targets[i] = null;
+            var targetWorldPos = (Vector3)boardManager.GridPosToWorldPos(pos);
+            // Set z to -1 so that the target is in front of the piece
+            targetWorldPos.z = -1;
+            Instantiate(TargetPrefab, targetWorldPos, Quaternion.identity, TempEntitiesParent.transform);
         }
-        targetnum = 0;
     }
 }
