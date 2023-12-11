@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections.Generic;
+
 
 
 public class GameManager : MonoBehaviour
@@ -46,6 +48,8 @@ public class GameManager : MonoBehaviour
 
     public TMP_Text P1Coins;
     public TMP_Text P2Coins;
+    //sprites
+    public Sprite movedsoldier;
 
     [HideInInspector]
     public PlayerTurn playerTurn;
@@ -54,6 +58,7 @@ public class GameManager : MonoBehaviour
 
 
     private Vector2Int selected;
+    private List<IPiece> movedPieceList = new List<IPiece>();
 
 
     void Awake()
@@ -193,7 +198,10 @@ public class GameManager : MonoBehaviour
                     {
                         ClearSpacesAndTargets();
                         gameState = null;
-                        playerTurn.SwitchPlayers();
+                        // add piece to list
+                        piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedsoldier;
+                        movedPieceList.Add(piece);
+                        // playerTurn.SwitchPlayers(); //turn not ended after done moving
                     }
                     else
                     {
@@ -238,7 +246,8 @@ public class GameManager : MonoBehaviour
 
                 ClearSpacesAndTargets();
                 gameState = null;
-                playerTurn.SwitchPlayers();
+                // add piece to list
+                // playerTurn.SwitchPlayers(); //turn no longer switched after attack
             }
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
@@ -264,7 +273,7 @@ public class GameManager : MonoBehaviour
                 else if (ValidPieceType(piece))
                 {
                     boardManager.boardState.SetPiece(null, pieceGridPos);
-                    playerTurn.SwitchPlayers();
+                    // playerTurn.SwitchPlayers(); //Turn not ended after piece delete
                 }
                 else
                 {
@@ -280,7 +289,8 @@ public class GameManager : MonoBehaviour
             {
                 ClearSpacesAndTargets();
                 gameState = null;
-                playerTurn.SwitchPlayers();
+                // add piece to list
+                // playerTurn.SwitchPlayers(); // turn not ended after cancel attack
             }
         }
     }
