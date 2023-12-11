@@ -342,11 +342,11 @@ public class GameManager : MonoBehaviour
                 boardManager.boardState.SetPiece(new Tank(tankObj, player), pieceGridPos);
                 if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 70).ToString(); }
             }
-            else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P1Coins.text) >= 50 || walletOverride))
+            else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P1Coins.text) >= 100 || walletOverride))
             {
                 var helicopterObj = Instantiate(HelicopterPrefabP1, pieceGlobalPos, Quaternion.identity);
                 boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
-                if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 50).ToString(); }
+                if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 100).ToString(); }
             }
         }
         else
@@ -369,12 +369,12 @@ public class GameManager : MonoBehaviour
                 boardManager.boardState.SetPiece(new Tank(tankObj, player), pieceGridPos);
                 if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 70).ToString(); }
             }
-            else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P2Coins.text) >= 50 || walletOverride))
+            else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P2Coins.text) >= 100 || walletOverride))
             {
                 // FIXME: Use the P2 helicopter prefab
                 var helicopterObj = Instantiate(HelicopterPrefabP1, pieceGlobalPos, Quaternion.identity);
                 boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
-                if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 50).ToString(); }
+                if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 100).ToString(); }
             }
         }
     }
