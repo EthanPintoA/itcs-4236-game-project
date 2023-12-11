@@ -188,6 +188,9 @@ public class GameManager : MonoBehaviour
                             if (pieceToAbsorb != null)
                             {
                                 boardManager.boardState.SetPiece(null, pieceGridPos);
+                                helicopter.DamageBonus = pieceToAbsorb.GetDamage();
+                                helicopter.Health += Mathf.FloorToInt(pieceToAbsorb.Health / 2f);
+                                helicopter.Range = Mathf.Max(helicopter.Range, pieceToAbsorb.Range);
                                 helicopter.CarryingAnotherPiece = true;
                                 Debug.Log("Helicopter is now carrying a piece");
                             }
