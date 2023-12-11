@@ -221,8 +221,8 @@ public class GameManager : MonoBehaviour
                         ClearSpacesAndTargets();
                         gameState = null;
                         // add piece to moved
-                        setSpriteToMoved(piece);
-                        movedPieceList.Add(piece);
+                        setSpriteToMoved(selectedPiece);
+                        movedPieceList.Add(selectedPiece);
                         // playerTurn.SwitchPlayers(); //turn not ended after done moving
                     }
                     else
