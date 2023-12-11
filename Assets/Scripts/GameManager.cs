@@ -2,9 +2,12 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using TMPro;
+
 
 public class GameManager : MonoBehaviour
 {
+
     [Header("Managers")]
     [SerializeField]
     private BoardManager boardManager;
@@ -20,6 +23,14 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     [Tooltip("The Prefab for the Soldier for Player2. Soldier is currently a placeholder for a piece.")]
     private GameObject SoldierPrefabP2;
+    [SerializeField]
+    private GameObject SniperPrefabP1;
+    [SerializeField]
+    private GameObject SniperPrefabP2;
+    [SerializeField]
+    private GameObject TankPrefabP1;
+    [SerializeField]
+    private GameObject TankPrefabP2;
 
     [SerializeField]
     [Tooltip("The Prefab for the Target. Denotes which spaces a piece can target with attacks.")]
@@ -33,10 +44,14 @@ public class GameManager : MonoBehaviour
     [Tooltip("The parent object for the spaces and targets.")]
     private GameObject TempEntitiesParent;
 
+    public TMP_Text P1Coins;
+    public TMP_Text P2Coins;
+
     [HideInInspector]
     public PlayerTurn playerTurn;
     [HideInInspector]
     public GameState? gameState;
+
 
     private Vector2Int selected;
 
@@ -47,16 +62,17 @@ public class GameManager : MonoBehaviour
         gameState = null;
     }
 
-    void Start() {
-        CreatePiece(new Vector2Int(0, 0), PieceType.Player1);
-        CreatePiece(new Vector2Int(1, 0), PieceType.Player1);
-        CreatePiece(new Vector2Int(2, 0), PieceType.Player1);
-        CreatePiece(new Vector2Int(3, 0), PieceType.Player1);
+    void Start()
+    {
+        CreatePiece(new Vector2Int(0, 0), PieceType.Player1, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(2, 0), PieceType.Player1, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(1, 0), PieceType.Player1, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(3, 0), PieceType.Player1, SelectedPiece.Soldier, true);
 
-        CreatePiece(new Vector2Int(9, 9), PieceType.Player2);
-        CreatePiece(new Vector2Int(8, 9), PieceType.Player2);
-        CreatePiece(new Vector2Int(7, 9), PieceType.Player2);
-        CreatePiece(new Vector2Int(6, 9), PieceType.Player2);
+        CreatePiece(new Vector2Int(9, 9), PieceType.Player2, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(8, 9), PieceType.Player2, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(7, 9), PieceType.Player2, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(6, 9), PieceType.Player2, SelectedPiece.Soldier, true);
     }
 
     void Update()
@@ -78,25 +94,48 @@ public class GameManager : MonoBehaviour
                 if (piece == null)
                 {
                     // Disable this until currency is implemented
-                    Debug.Log("Creating a piece is currently disabled");
+                    // Debug.Log("Creating a piece is currently disabled");
 
-                    // var player = state == GameState.P1Turn ? PieceType.Player1 : PieceType.Player2;
-                    // CreatePiece(pieceGridPos, player);
-                    // state = state.GetSwitchPlayersTurns();
+                    var player = playerTurn.GetPlayerPiece();
+                    CreatePiece(pieceGridPos, player, shopManager.selectedPiece);
+                    shopManager.selectedPiece = null;
+                    // playerTurn.SwitchPlayers();
                 }
                 else if (
                     piece.Type == PieceType.Wall
                     && shopManager.selectedPiece == SelectedPiece.Tnt
                 )
                 {
-                    var requiredPiece = playerTurn.GetPlayerPiece();
-                    if (HasNeighbor(pieceGridPos, requiredPiece))
+                    //check and subtract coins from wallet
+                    var player = playerTurn.GetPlayerPiece();
+                    int playerCoins = (player == PieceType.Player1) ? int.Parse(P1Coins.text) : int.Parse(P2Coins.text);
+                    if (playerCoins < 50)
                     {
-                        boardManager.boardState.SetPiece(null, pieceGridPos);
-                        shopManager.selectedPiece = null;
-                    } else {
-                        Debug.Log("TNT must be placed next to a piece owned by the current player");
+                        return; // Not enough coins to place TNT
                     }
+                    else
+                    {
+                        //place tnt
+                        var requiredPiece = playerTurn.GetPlayerPiece();
+                        if (HasNeighbor(pieceGridPos, requiredPiece))
+                        {
+                            boardManager.boardState.SetPiece(null, pieceGridPos);
+                            shopManager.selectedPiece = null;
+                            if (player == PieceType.Player1)
+                            {
+                                P1Coins.text = (playerCoins - 50).ToString();
+                            }
+                            else if (player == PieceType.Player2)
+                            {
+                                P2Coins.text = (playerCoins - 50).ToString();
+                            }
+                        }
+                        else
+                        {
+                            Debug.Log("TNT must be placed next to a piece owned by the current player");
+                        }
+                    }
+
                 }
                 else
                 {
@@ -209,8 +248,9 @@ public class GameManager : MonoBehaviour
                 Debug.Log($"Deleting piece at {pieceGridPos}");
 
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
-                
-                if (piece == null) {
+
+                if (piece == null)
+                {
                     Debug.Log("There is no piece here");
                 }
                 else if (ValidPieceType(piece))
@@ -251,21 +291,53 @@ public class GameManager : MonoBehaviour
     /// <br/>
     /// Currently only creates a Soldier.
     /// </summary>
-    private void CreatePiece(Vector2Int pieceGridPos, PieceType player)
+    private void CreatePiece(Vector2Int pieceGridPos, PieceType player, SelectedPiece? selectedPiece, bool walletOverride = false)
     {
         Debug.Log($"Creating piece on grid position: {pieceGridPos}");
-        
+
         var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 
-        if(player == PieceType.Player1)
+        if (player == PieceType.Player1)
         {
-            var soldierObj = Instantiate(SoldierPrefabP1, pieceGlobalPos, Quaternion.identity);
-            boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+            if (selectedPiece == SelectedPiece.Soldier && (int.Parse(P1Coins.text) >= 10 || walletOverride))
+            {
+                var soldierObj = Instantiate(SoldierPrefabP1, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+                if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 10).ToString(); }
+            }
+            else if (selectedPiece == SelectedPiece.Sniper && (int.Parse(P1Coins.text) >= 40 || walletOverride))
+            {
+                var sniperObj = Instantiate(SniperPrefabP1, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Tank(sniperObj, player), pieceGridPos);
+                if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 40).ToString(); }
+            }
+            else if (selectedPiece == SelectedPiece.Tank && (int.Parse(P1Coins.text) >= 70 || walletOverride))
+            {
+                var tankObj = Instantiate(TankPrefabP1, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Tank(tankObj, player), pieceGridPos);
+                if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 70).ToString(); }
+            }
         }
         else
         {
-            var soldierObj = Instantiate(SoldierPrefabP2, pieceGlobalPos, Quaternion.identity);
-            boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+            if (selectedPiece == SelectedPiece.Soldier && (int.Parse(P2Coins.text) >= 10 || walletOverride))
+            {
+                var soldierObj = Instantiate(SoldierPrefabP2, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Soldier(soldierObj, player), pieceGridPos);
+                if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 10).ToString(); }
+            }
+            else if (selectedPiece == SelectedPiece.Sniper && (int.Parse(P2Coins.text) >= 40 || walletOverride))
+            {
+                var sniperObj = Instantiate(SniperPrefabP2, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Tank(sniperObj, player), pieceGridPos);
+                if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 40).ToString(); }
+            }
+            else if (selectedPiece == SelectedPiece.Tank && (int.Parse(P2Coins.text) >= 70 || walletOverride))
+            {
+                var tankObj = Instantiate(TankPrefabP2, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Tank(tankObj, player), pieceGridPos);
+                if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 70).ToString(); }
+            }
         }
     }
 
