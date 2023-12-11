@@ -97,8 +97,14 @@ public class GameManager : MonoBehaviour
                     // Debug.Log("Creating a piece is currently disabled");
 
                     var player = playerTurn.GetPlayerPiece();
-                    CreatePiece(pieceGridPos, player, shopManager.selectedPiece);
-                    shopManager.selectedPiece = null;
+                    //check if piece is being placed on first 2 rows
+                    if (((player == PieceType.Player1) && (pieceGridPos.y == 0 || pieceGridPos.y == 1)) || ((player == PieceType.Player2) && (pieceGridPos.y == 8 || pieceGridPos.y == 9)))
+                    {
+                        CreatePiece(pieceGridPos, player, shopManager.selectedPiece);
+                        shopManager.selectedPiece = null;
+                    }
+
+
                     // playerTurn.SwitchPlayers();
                 }
                 else if (
