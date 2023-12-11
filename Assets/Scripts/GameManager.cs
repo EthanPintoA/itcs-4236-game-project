@@ -195,12 +195,7 @@ public class GameManager : MonoBehaviour
                         if (selectedPiece is Helicopter helicopter)
                         {
                             var pieceToAbsorb = boardManager.boardState.GetPiece(pieceGridPos);
-                            if (
-                                pieceToAbsorb != null
-                                && !helicopter.CarryingAnotherPiece
-                                && pieceToAbsorb is not King
-                                && pieceToAbsorb is not Helicopter
-                            )
+                            if (pieceToAbsorb != null)
                             {
                                 boardManager.boardState.SetPiece(null, pieceGridPos);
                                 helicopter.DamageBonus = pieceToAbsorb.GetDamage();
@@ -491,7 +486,12 @@ public class GameManager : MonoBehaviour
                     .Where(pos =>
                     {
                         var piece = boardManager.boardState.GetPiece(pos);
-                        return piece == null || piece.Type == playerTurn.GetPlayerPiece();
+                        return piece == null
+                            || (
+                                piece.Type == playerTurn.GetPlayerPiece()
+                                && piece is not Helicopter
+                                && piece is not King
+                            );
                     })
                     .ToArray();
             }
