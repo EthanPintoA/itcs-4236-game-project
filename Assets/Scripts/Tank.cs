@@ -4,9 +4,8 @@ public class Tank : IPiece
 {
     public int GetDamage()
     {
-        //int randomNumber = Random.Range(1, 101);
-        //return (randomNumber <= 50) ? 3 : 4;
-        return 1;
+        int randomNumber = Random.Range(1, 101);
+        return (randomNumber <= 50) ? 3 : 4;
     }
 
     public GameObject GameObject { get; }
