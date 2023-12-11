@@ -33,6 +33,8 @@ public class GameManager : MonoBehaviour
     private GameObject TankPrefabP1;
     [SerializeField]
     private GameObject TankPrefabP2;
+    [SerializeField]
+    private GameObject HelicopterPrefabP1;
 
     [SerializeField]
     [Tooltip("The Prefab for the Target. Denotes which spaces a piece can target with attacks.")]
@@ -183,21 +185,36 @@ public class GameManager : MonoBehaviour
                 }
 
                 var didSelectSamePos = pieceGridPos == selected;
-                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                IPiece selectedPiece = boardManager.boardState.GetPiece(selected);
 
                 if (didSelectSpace || didSelectSamePos)
                 {
                     if (!didSelectSamePos)
                     {
+                        // Helicopter needs to absorb the piece it moves to if it's not carrying another piece
+                        if (selectedPiece is Helicopter helicopter)
+                        {
+                            var pieceToAbsorb = boardManager.boardState.GetPiece(pieceGridPos);
+                            if (pieceToAbsorb != null)
+                            {
+                                boardManager.boardState.SetPiece(null, pieceGridPos);
+                                helicopter.DamageBonus = pieceToAbsorb.GetDamage();
+                                helicopter.Health += Mathf.FloorToInt(pieceToAbsorb.Health / 2f);
+                                helicopter.Range = Mathf.Max(helicopter.Range, pieceToAbsorb.Range);
+                                helicopter.CarryingAnotherPiece = true;
+                                Debug.Log("Helicopter is now carrying a piece");
+                            }
+                        }
+
                         boardManager.boardState.MovePiece(selected, pieceGridPos);
                         // Update piece since was destroyed and recreated
-                        piece = boardManager.boardState.GetPiece(pieceGridPos);
+                        selectedPiece = boardManager.boardState.GetPiece(pieceGridPos);
                         selected = pieceGridPos;
                     }
 
                     ClearSpacesAndTargets();
                     gameState = GameState.Attack;
-                    var PossiblePositions = GetAttackOptions(piece, pieceGridPos);
+                    var PossiblePositions = GetAttackOptions(selectedPiece, pieceGridPos);
 
                     if (PossiblePositions.Length == 0)
                     {
@@ -351,6 +368,12 @@ public class GameManager : MonoBehaviour
                 boardManager.boardState.SetPiece(new Tank(tankObj, player), pieceGridPos);
                 if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 70).ToString(); }
             }
+            else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P1Coins.text) >= 100 || walletOverride))
+            {
+                var helicopterObj = Instantiate(HelicopterPrefabP1, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
+                if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 100).ToString(); }
+            }
         }
         else
         {
@@ -371,6 +394,13 @@ public class GameManager : MonoBehaviour
                 var tankObj = Instantiate(TankPrefabP2, pieceGlobalPos, Quaternion.identity);
                 boardManager.boardState.SetPiece(new Tank(tankObj, player), pieceGridPos);
                 if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 70).ToString(); }
+            }
+            else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P2Coins.text) >= 100 || walletOverride))
+            {
+                // FIXME: Use the P2 helicopter prefab
+                var helicopterObj = Instantiate(HelicopterPrefabP1, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
+                if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 100).ToString(); }
             }
         }
     }
@@ -435,16 +465,47 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private Vector2Int[] GetMovementOptions(IPiece piece, Vector2Int pieceGridPos)
     {
-        var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
-        var PossiblePositions = new PossiblePositions(grid, 10, 10, piece.Movement, pieceGridPos).GetPositions();
+        if (piece is Helicopter helicopter)
+        {
+            // Helicopter can move anywhere on the board
+            var grid = new bool[10, 10];
+            var PossiblePositions = new PossiblePositions(grid, piece.Movement, pieceGridPos).GetPositions();
 
-        // Remove the current position. We don't want to move to the same position.
-        PossiblePositions = PossiblePositions.Where(pos => pos != pieceGridPos).ToArray();
+            // Remove the current position. We don't want to move to the same position.
+            PossiblePositions = PossiblePositions.Where(pos => pos != pieceGridPos).ToArray();
 
-        // Remove positions that have a piece. We don't want to move on top of a piece.
-        PossiblePositions = PossiblePositions.Where(pos => boardManager.boardState.GetPiece(pos) == null).ToArray();
+            if (helicopter.CarryingAnotherPiece)
+            {
+                // Ignore positions that have a piece, since we can't carry more than one piece.
+                PossiblePositions = PossiblePositions.Where(pos => boardManager.boardState.GetPiece(pos) == null).ToArray();
+            }
+            else
+            {
+                // Remove positions that have a piece that we don't own.
+                PossiblePositions = PossiblePositions
+                    .Where(pos =>
+                    {
+                        var piece = boardManager.boardState.GetPiece(pos);
+                        return piece == null || piece.Type == playerTurn.GetPlayerPiece();
+                    })
+                    .ToArray();
+            }
 
-        return PossiblePositions;
+            return PossiblePositions;
+        }
+        else
+        {
+            var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
+            var PossiblePositions = new PossiblePositions(grid, 10, 10, piece.Movement, pieceGridPos).GetPositions();
+
+            // Remove the current position. We don't want to move to the same position.
+            PossiblePositions = PossiblePositions.Where(pos => pos != pieceGridPos).ToArray();
+
+            // Remove positions that have a piece. We don't want to move on top of a piece.
+            PossiblePositions = PossiblePositions.Where(pos => boardManager.boardState.GetPiece(pos) == null).ToArray();
+
+            return PossiblePositions;
+        }
     }
 
     /// <summary>
@@ -454,7 +515,9 @@ public class GameManager : MonoBehaviour
     {
         foreach (var pos in positions)
         {
-            var spaceWorldPos = boardManager.GridPosToWorldPos(pos);
+            var spaceWorldPos = (Vector3)boardManager.GridPosToWorldPos(pos);
+            // Set z to 1 so that the space is behind the piece
+            spaceWorldPos.z = 1;
             Instantiate(SpacePrefab, spaceWorldPos, Quaternion.identity, TempEntitiesParent.transform);
         }
     }
