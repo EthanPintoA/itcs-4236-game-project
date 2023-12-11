@@ -28,33 +28,48 @@ public class TargetPossiblePositions : PossiblePositions
         List<Vector2Int> adjacentNodeDirections;
         var directionFromStartToNode = node.position - startPos;
 
-        // Normalize the direction vector so that it is either up, down, left, or right
-        if (directionFromStartToNode.x != 0)
-        {
-            directionFromStartToNode.x /= Mathf.Abs(directionFromStartToNode.x);
-        }
-        else if (directionFromStartToNode.y != 0)
-        {
-            directionFromStartToNode.y /= Mathf.Abs(directionFromStartToNode.y);
-        }
-
         // If the node is the start node, then the all directions are possible
-        if (directionFromStartToNode.magnitude.Equals(0))
+        if (directionFromStartToNode == Vector2Int.zero)
         {
             adjacentNodeDirections = new List<Vector2Int>
             {
-                Vector2Int.up,
-                Vector2Int.right,
-                Vector2Int.down,
-                Vector2Int.left
+                new(-1, -1), // Top Left
+                new(0, -1), // Top
+                new(1, -1), // Top Right
+                new(-1, 0), // Left
+                new(1, 0), // Right
+                new(-1, 1), // Down Left
+                new(0, 1), // Down
+                new(1, 1), // Down Right
             };
         }
+        // If node is left or right of the start node
+        else if (
+            Mathf.Abs(directionFromStartToNode.x) > 0 && Mathf.Abs(directionFromStartToNode.y) == 0
+        )
+        {
+            adjacentNodeDirections = new List<Vector2Int>
+            {
+                new(-1, 0), // Left
+                new(1, 0), // Right
+            };
+        }
+        // If node is above or below the start node
+        else if (
+            Mathf.Abs(directionFromStartToNode.x) == 0 && Mathf.Abs(directionFromStartToNode.y) > 0
+        )
+        {
+            adjacentNodeDirections = new List<Vector2Int>
+            {
+                new(0, -1), // Top
+                new(0, 1), // Down
+            };
+        }
+        // If node is diagonal, then ignore it
         else
         {
-            adjacentNodeDirections = new List<Vector2Int> { directionFromStartToNode };
+            return new List<Node>();
         }
-
-        Debug.Log($"adjacentNodeDirections: {string.Join(", ", adjacentNodeDirections)}");
 
         var adjacentNodes = new List<Node>();
 
