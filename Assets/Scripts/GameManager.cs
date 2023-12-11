@@ -486,7 +486,12 @@ public class GameManager : MonoBehaviour
                     .Where(pos =>
                     {
                         var piece = boardManager.boardState.GetPiece(pos);
-                        return piece == null || piece.Type == playerTurn.GetPlayerPiece();
+                        return piece == null
+                            || (
+                                piece.Type == playerTurn.GetPlayerPiece()
+                                && piece is not Helicopter
+                                && piece is not King
+                            );
                     })
                     .ToArray();
             }
