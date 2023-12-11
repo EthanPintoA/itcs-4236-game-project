@@ -12,6 +12,7 @@ public class ShopManager : MonoBehaviour
             "tank" => SelectedPiece.Tank,
             "sniper" => SelectedPiece.Sniper,
             "soldier" => SelectedPiece.Soldier,
+            "Helicopter" => SelectedPiece.Helicopter,
             _ => null
         };
 
@@ -34,5 +35,6 @@ public enum SelectedPiece
     Tnt,
     Soldier,
     Sniper,
-    Tank
+    Tank,
+    Helicopter,
 }
