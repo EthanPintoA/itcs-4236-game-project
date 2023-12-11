@@ -21,6 +21,6 @@ public class Tank : IPiece
         Type = type;
         Movement = 1;
         Range = 2;
-        Health = 1; //5
+        Health = 5; //5
     }
 }

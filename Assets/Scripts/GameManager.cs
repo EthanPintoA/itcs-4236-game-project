@@ -188,7 +188,9 @@ public class GameManager : MonoBehaviour
                         ClearSpacesAndTargets();
                         gameState = null;
                         playerTurn.SwitchPlayers();
-                    } else {
+                    }
+                    else
+                    {
                         CreateTargets(PossiblePositions);
                     }
                 }
@@ -227,7 +229,7 @@ public class GameManager : MonoBehaviour
                         }
                     }
                 }
-                
+
                 ClearSpacesAndTargets();
                 gameState = null;
                 playerTurn.SwitchPlayers();
@@ -308,7 +310,7 @@ public class GameManager : MonoBehaviour
             else if (selectedPiece == SelectedPiece.Sniper && (int.Parse(P1Coins.text) >= 40 || walletOverride))
             {
                 var sniperObj = Instantiate(SniperPrefabP1, pieceGlobalPos, Quaternion.identity);
-                boardManager.boardState.SetPiece(new Tank(sniperObj, player), pieceGridPos);
+                boardManager.boardState.SetPiece(new Sniper(sniperObj, player), pieceGridPos);
                 if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 40).ToString(); }
             }
             else if (selectedPiece == SelectedPiece.Tank && (int.Parse(P1Coins.text) >= 70 || walletOverride))
@@ -329,7 +331,7 @@ public class GameManager : MonoBehaviour
             else if (selectedPiece == SelectedPiece.Sniper && (int.Parse(P2Coins.text) >= 40 || walletOverride))
             {
                 var sniperObj = Instantiate(SniperPrefabP2, pieceGlobalPos, Quaternion.identity);
-                boardManager.boardState.SetPiece(new Tank(sniperObj, player), pieceGridPos);
+                boardManager.boardState.SetPiece(new Sniper(sniperObj, player), pieceGridPos);
                 if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 40).ToString(); }
             }
             else if (selectedPiece == SelectedPiece.Tank && (int.Parse(P2Coins.text) >= 70 || walletOverride))
