@@ -17,8 +17,8 @@ public class Soldier : IPiece
     {
         GameObject = gameObject;
         Type = type;
-        Movement = 3;
-        Range = 2;
+        Movement = 1;
+        Range = 1;
         Health = 1;
     }
 }

@@ -24,7 +24,7 @@ public class Sniper : IPiece
         GameObject = gameObject;
         Type = type;
         Movement = 1;
-        Range = 3;
+        Range = 4;
         Health = 1;
     }
 }
