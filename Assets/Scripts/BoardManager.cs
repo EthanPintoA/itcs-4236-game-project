@@ -70,11 +70,13 @@ public class BoardManager : MonoBehaviour
         return new Vector2(gridPos.x, -gridPos.y) - offset;
     }
 
-    public bool DidPlayerWin(PieceType player)
+    public bool DidPlayerWin(PieceType player)//returns true if enemy doesn't have pieces
     {
+        //check enemy pieces
         var enemy = (player == PieceType.Player1) ? PieceType.Player2 : PieceType.Player1;
-        var enemyHasPieces = boardState.Pieces.Any(piece => piece?.Type == enemy);
-
-        return !enemyHasPieces;
+        // var enemyHasPieces = boardState.Pieces.Any(piece => piece?.Type == enemy);
+        //check enemy king
+        var enemyHasKing = boardState.Pieces.Any(piece => ((piece?.Type == enemy) && (piece is King)));
+        return !enemyHasKing;
     }
 }
