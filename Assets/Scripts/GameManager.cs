@@ -69,8 +69,8 @@ public class GameManager : MonoBehaviour
     [HideInInspector]
     public GameState? gameState;
 
-
-    private Vector2Int selected;
+    [HideInInspector]
+    public Vector2Int? selected;
     private List<IPiece> movedPieceList = new List<IPiece>();
 
 
@@ -78,10 +78,13 @@ public class GameManager : MonoBehaviour
     {
         playerTurn = PlayerTurn.Player1;
         gameState = null;
+        selected = null;
     }
 
     void Start()
     {
+        selected = null;
+
         CreatePiece(new Vector2Int(0, 0), PieceType.Player1, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(2, 0), PieceType.Player1, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(1, 0), PieceType.Player1, SelectedPiece.Soldier, true);
@@ -185,7 +188,7 @@ public class GameManager : MonoBehaviour
                 }
 
                 var didSelectSamePos = pieceGridPos == selected;
-                IPiece selectedPiece = boardManager.boardState.GetPiece(selected);
+                IPiece selectedPiece = boardManager.boardState.GetPiece(selected.Value);
 
                 if (didSelectSpace || didSelectSamePos)
                 {
@@ -206,7 +209,7 @@ public class GameManager : MonoBehaviour
                             }
                         }
 
-                        boardManager.boardState.MovePiece(selected, pieceGridPos);
+                        boardManager.boardState.MovePiece(selected.Value, pieceGridPos);
                         // Update piece since was destroyed and recreated
                         selectedPiece = boardManager.boardState.GetPiece(pieceGridPos);
                         selected = pieceGridPos;
@@ -220,6 +223,7 @@ public class GameManager : MonoBehaviour
                     {
                         ClearSpacesAndTargets();
                         gameState = null;
+                        selected = null;
                         // add piece to moved
                         setSpriteToMoved(selectedPiece);
                         movedPieceList.Add(selectedPiece);
@@ -234,6 +238,7 @@ public class GameManager : MonoBehaviour
                 {
                     ClearSpacesAndTargets();
                     gameState = null;
+                    selected = null;
                 }
             }
             else if (gameState == GameState.Attack)
@@ -250,12 +255,12 @@ public class GameManager : MonoBehaviour
                     else if (childGridPos.Value == pieceGridPos)
                     {
                         // add piece to moved
-                        IPiece piece = boardManager.boardState.GetPiece(selected);
+                        IPiece piece = boardManager.boardState.GetPiece(selected.Value);
                         setSpriteToMoved(piece);
                         movedPieceList.Add(piece);
                         Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
 
-                        boardManager.boardState.AttackPiece(selected, pieceGridPos);
+                        boardManager.boardState.AttackPiece(selected.Value, pieceGridPos);
                         var currentPlayer = playerTurn.GetPlayerPiece();
                         if (boardManager.DidPlayerWin(currentPlayer))
                         {
@@ -274,6 +279,7 @@ public class GameManager : MonoBehaviour
 
                 ClearSpacesAndTargets();
                 gameState = null;
+                selected = null;
                 // add piece to list
                 // playerTurn.SwitchPlayers(); //turn no longer switched after attack
             }
@@ -312,11 +318,13 @@ public class GameManager : MonoBehaviour
             {
                 ClearSpacesAndTargets();
                 gameState = null;
+                selected = null;
             }
             else if (gameState == GameState.Attack)
             {
                 ClearSpacesAndTargets();
                 gameState = null;
+                selected = null;
                 // add piece to list
 
                 // playerTurn.SwitchPlayers(); // turn not ended after cancel attack

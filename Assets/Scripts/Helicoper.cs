@@ -22,6 +22,9 @@ public class Helicopter : IPiece
     /// </summary>
     public int DamageBonus { get; set; }
 
+    // Will add the damage bonus to the damage stat if the damage bonus is greater than 0.
+    public string DamageAsStat => "1~3" + ((DamageBonus > 0) ? "+" + DamageBonus : "");
+
     public Helicopter(GameObject gameObject, PieceType type)
     {
         GameObject = gameObject;

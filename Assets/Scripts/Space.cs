@@ -9,11 +9,14 @@ public class Space : IPiece
     {
         return 0;
     }
+
     public GameObject GameObject { get; }
     public PieceType Type { get; }
     public int Movement { get; }
     public int Range { get; }
     public int Health { get; set; }
+
+    public string DamageAsStat => "0";
 
     public Space(GameObject gameObject)
     {

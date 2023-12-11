@@ -10,6 +10,10 @@ public interface IPiece
 
     public int GetDamage();
 
+    /// <summary>
+    /// What to display in the UI for damage.
+    /// </summary>
+    public string DamageAsStat { get; }
 }
 
 public enum PieceType
