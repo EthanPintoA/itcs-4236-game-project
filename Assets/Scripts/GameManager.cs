@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections.Generic;
+
 
 
 public class GameManager : MonoBehaviour
@@ -46,6 +48,19 @@ public class GameManager : MonoBehaviour
 
     public TMP_Text P1Coins;
     public TMP_Text P2Coins;
+    //sprites
+    public Sprite movedSoldier;
+    public Sprite movedTank;
+    public Sprite movedSniper;
+    public Sprite movedKing;
+    public Sprite P1Soldier;
+    public Sprite P1Tank;
+    public Sprite P1Sniper;
+    public Sprite P1King;
+    public Sprite P2Soldier;
+    public Sprite P2Tank;
+    public Sprite P2Sniper;
+    public Sprite P2King;
 
     [HideInInspector]
     public PlayerTurn playerTurn;
@@ -54,6 +69,7 @@ public class GameManager : MonoBehaviour
 
 
     private Vector2Int selected;
+    private List<IPiece> movedPieceList = new List<IPiece>();
 
 
     void Awake()
@@ -88,14 +104,11 @@ public class GameManager : MonoBehaviour
             }
             var pieceGridPos = nPiecePos.Value;
 
-            if (gameState == null)
+            if (gameState == null)//empty square selected (place piece)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
                 if (piece == null)
                 {
-                    // Disable this until currency is implemented
-                    // Debug.Log("Creating a piece is currently disabled");
-
                     var player = playerTurn.GetPlayerPiece();
                     //check if piece is being placed on first 2 rows
                     if (((player == PieceType.Player1) && (pieceGridPos.y == 0 || pieceGridPos.y == 1)) || ((player == PieceType.Player2) && (pieceGridPos.y == 8 || pieceGridPos.y == 9)))
@@ -103,11 +116,8 @@ public class GameManager : MonoBehaviour
                         CreatePiece(pieceGridPos, player, shopManager.selectedPiece);
                         shopManager.selectedPiece = null;
                     }
-
-
-                    // playerTurn.SwitchPlayers();
                 }
-                else if (
+                else if (//wall selected (place tnt)
                     piece.Type == PieceType.Wall
                     && shopManager.selectedPiece == SelectedPiece.Tnt
                 )
@@ -143,7 +153,7 @@ public class GameManager : MonoBehaviour
                     }
 
                 }
-                else
+                else//piece is selected (if your piece: you can move it)
                 {
                     //If selecting one of your pieces, mark as selected and calculate avaliable spaces
                     if (ValidPieceType(piece))
@@ -193,7 +203,10 @@ public class GameManager : MonoBehaviour
                     {
                         ClearSpacesAndTargets();
                         gameState = null;
-                        playerTurn.SwitchPlayers();
+                        // add piece to moved
+                        setSpriteToMoved(piece);
+                        movedPieceList.Add(piece);
+                        // playerTurn.SwitchPlayers(); //turn not ended after done moving
                     }
                     else
                     {
@@ -219,6 +232,12 @@ public class GameManager : MonoBehaviour
                     //If a targetable piece is selected, attack it
                     else if (childGridPos.Value == pieceGridPos)
                     {
+                        // add piece to moved
+                        IPiece piece = boardManager.boardState.GetPiece(selected);
+                        setSpriteToMoved(piece);
+                        movedPieceList.Add(piece);
+                        Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
+
                         boardManager.boardState.AttackPiece(selected, pieceGridPos);
                         var currentPlayer = playerTurn.GetPlayerPiece();
                         if (boardManager.DidPlayerWin(currentPlayer))
@@ -238,7 +257,8 @@ public class GameManager : MonoBehaviour
 
                 ClearSpacesAndTargets();
                 gameState = null;
-                playerTurn.SwitchPlayers();
+                // add piece to list
+                // playerTurn.SwitchPlayers(); //turn no longer switched after attack
             }
         }
         else if (Mouse.current.rightButton.wasPressedThisFrame)
@@ -264,7 +284,7 @@ public class GameManager : MonoBehaviour
                 else if (ValidPieceType(piece))
                 {
                     boardManager.boardState.SetPiece(null, pieceGridPos);
-                    playerTurn.SwitchPlayers();
+                    // playerTurn.SwitchPlayers(); //Turn not ended after piece delete
                 }
                 else
                 {
@@ -280,7 +300,9 @@ public class GameManager : MonoBehaviour
             {
                 ClearSpacesAndTargets();
                 gameState = null;
-                playerTurn.SwitchPlayers();
+                // add piece to list
+
+                // playerTurn.SwitchPlayers(); // turn not ended after cancel attack
             }
         }
     }
@@ -290,6 +312,10 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private bool ValidPieceType(IPiece piece)
     {
+        if (movedPieceList.Contains(piece))
+        {
+            return false;
+        }
         return (playerTurn == PlayerTurn.Player1 && piece.Type == PieceType.Player1)
             || (playerTurn == PlayerTurn.Player2 && piece.Type == PieceType.Player2);
     }
@@ -466,5 +492,71 @@ public class GameManager : MonoBehaviour
             targetWorldPos.z = -1;
             Instantiate(TargetPrefab, targetWorldPos, Quaternion.identity, TempEntitiesParent.transform);
         }
+    }
+    private void setSpriteToMoved(IPiece piece)
+    {
+        if (piece is Soldier)
+        {
+            piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedSoldier;
+        }
+        else if (piece is Tank)
+        {
+            piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedTank;
+        }
+        else if (piece is Sniper)
+        {
+            piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedSniper;
+        }
+        else if (piece is King)
+        {
+            piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedKing;
+        }
+    }
+    public void switchTurn()
+    {
+        foreach (var piece in movedPieceList)
+        {
+            var player = playerTurn.GetPlayerPiece();
+            if (player == PieceType.Player1)
+            {
+                if (piece is Soldier)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1Soldier;
+                }
+                else if (piece is Tank)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1Tank;
+                }
+                else if (piece is Sniper)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1Sniper;
+                }
+                else if (piece is King)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1King;
+                }
+            }
+            else if (player == PieceType.Player2)
+            {
+                if (piece is Soldier)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2Soldier;
+                }
+                else if (piece is Tank)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2Tank;
+                }
+                else if (piece is Sniper)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2Sniper;
+                }
+                else if (piece is King)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2King;
+                }
+            }
+        }
+        movedPieceList.Clear();
+        playerTurn.SwitchPlayers();
     }
 }

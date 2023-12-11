@@ -4466,7 +4466,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1104483108}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1989093553}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: switchTurn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1104483108
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7575,6 +7587,18 @@ MonoBehaviour:
   TempEntitiesParent: {fileID: 1156988583}
   P1Coins: {fileID: 1429647971}
   P2Coins: {fileID: 1796952011}
+  movedSoldier: {fileID: 21300000, guid: 6180ee633a5f76a4bb0bc350ecea5b65, type: 3}
+  movedTank: {fileID: 21300000, guid: 76c8e9a3e966f2e4fbb7e96654ad6e22, type: 3}
+  movedSniper: {fileID: 21300000, guid: f3bf2ad72fc1d3e43b01a7f0da123fe7, type: 3}
+  movedKing: {fileID: 21300000, guid: ab1303bf523781546bbb3f078451cf2f, type: 3}
+  P1Soldier: {fileID: 21300000, guid: 75c737675832aeb4c9d9bb5d02616867, type: 3}
+  P1Tank: {fileID: 21300000, guid: e0330beeac8ea1f4090aca741f218591, type: 3}
+  P1Sniper: {fileID: 21300000, guid: bac592fd5f8021b42b975ceaf2099233, type: 3}
+  P1King: {fileID: 21300000, guid: 620e24e94e299b34d98c40b74b923c88, type: 3}
+  P2Soldier: {fileID: 21300000, guid: cc47988f89829cc469f493dda779196d, type: 3}
+  P2Tank: {fileID: 21300000, guid: 2e3e3bd0114a9024e9d10d46ec574639, type: 3}
+  P2Sniper: {fileID: 21300000, guid: 1fa77a41b3807644582e48dc57fa4d56, type: 3}
+  P2King: {fileID: 21300000, guid: ce3434d3ab5ec6249824be9df2ddd755, type: 3}
   playerTurn: 0
 --- !u!1 &1994229884
 GameObject:
