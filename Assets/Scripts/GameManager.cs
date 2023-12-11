@@ -195,7 +195,12 @@ public class GameManager : MonoBehaviour
                         if (selectedPiece is Helicopter helicopter)
                         {
                             var pieceToAbsorb = boardManager.boardState.GetPiece(pieceGridPos);
-                            if (pieceToAbsorb != null)
+                            if (
+                                pieceToAbsorb != null
+                                && !helicopter.CarryingAnotherPiece
+                                && pieceToAbsorb is not King
+                                && pieceToAbsorb is not Helicopter
+                            )
                             {
                                 boardManager.boardState.SetPiece(null, pieceGridPos);
                                 helicopter.DamageBonus = pieceToAbsorb.GetDamage();
