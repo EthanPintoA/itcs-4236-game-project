@@ -313,10 +313,25 @@ public class GameManager : MonoBehaviour
                 {
                     Debug.Log("There is no piece here");
                 }
-                else if (ValidPieceType(piece))
+                else if (ValidPieceType(piece))//delete ur own piece
                 {
                     boardManager.boardState.SetPiece(null, pieceGridPos);
-                    // playerTurn.SwitchPlayers(); //Turn not ended after piece delete
+                    //check for king suicide
+                    var currentPlayer = playerTurn.GetPlayerPiece();
+                    var enemy = (currentPlayer == PieceType.Player1) ? PieceType.Player2 : PieceType.Player1;
+                    if (boardManager.DidPlayerWin(enemy))
+                    {
+                        Debug.Log($"Player {currentPlayer} won!");
+                        if (currentPlayer == PieceType.Player1)
+                        {
+                            SceneManager.LoadScene("P2WinScene");
+                        }
+                        else
+                        {
+                            SceneManager.LoadScene("P1WinScene");
+                        }
+                    }
+                    //asdf
                 }
                 else
                 {
@@ -334,9 +349,6 @@ public class GameManager : MonoBehaviour
                 ClearSpacesAndTargets();
                 gameState = null;
                 selected = null;
-                // add piece to list
-
-                // playerTurn.SwitchPlayers(); // turn not ended after cancel attack
             }
         }
     }
