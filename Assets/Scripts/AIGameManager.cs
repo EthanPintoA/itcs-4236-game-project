@@ -105,7 +105,7 @@ public class AIGameManager : MonoBehaviour
 
     void Update()
     {
-        if(playerTurn == PlayerTurn.Player2 && gameState == null)
+        if (playerTurn == PlayerTurn.Player2 && gameState == null)
         {
             Debug.Log("AI Turn");
 
@@ -143,7 +143,7 @@ public class AIGameManager : MonoBehaviour
                 )
                 {
                     //check and subtract coins from wallet
-                    int playerCoins =  int.Parse(P1Coins.text);
+                    int playerCoins = int.Parse(P1Coins.text);
                     if (playerCoins < 50)
                     {
                         return; // Not enough coins to place TNT
@@ -657,6 +657,9 @@ public class AIGameManager : MonoBehaviour
                 }
             }
         }
+        ClearSpacesAndTargets();
+        gameState = null;
+        selected = null;
         movedPieceList.Clear();
         shopManager.selectedPiece = null;
         playerTurn.SwitchPlayers();
