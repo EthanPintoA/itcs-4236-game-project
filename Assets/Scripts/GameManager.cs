@@ -676,6 +676,9 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        ClearSpacesAndTargets();
+        gameState = null;
+        selected = null;
         movedPieceList.Clear();
         shopManager.selectedPiece = null;
         playerTurn.SwitchPlayers();
