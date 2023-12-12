@@ -37,6 +37,10 @@ public class GameManager : MonoBehaviour
     private GameObject HelicopterPrefabP1;
     [SerializeField]
     private GameObject HelicopterPrefabP2;
+    [SerializeField]
+    private GameObject KingPrefabP1;
+    [SerializeField]
+    private GameObject KingPrefabP2;
 
     [SerializeField]
     [Tooltip("The Prefab for the Target. Denotes which spaces a piece can target with attacks.")]
@@ -89,13 +93,12 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         selected = null;
-
-        CreatePiece(new Vector2Int(0, 0), PieceType.Player1, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(0, 0), PieceType.Player1, SelectedPiece.King, true);
         CreatePiece(new Vector2Int(2, 0), PieceType.Player1, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(1, 0), PieceType.Player1, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(3, 0), PieceType.Player1, SelectedPiece.Soldier, true);
 
-        CreatePiece(new Vector2Int(9, 9), PieceType.Player2, SelectedPiece.Soldier, true);
+        CreatePiece(new Vector2Int(9, 9), PieceType.Player2, SelectedPiece.King, true);
         CreatePiece(new Vector2Int(8, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(7, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(6, 9), PieceType.Player2, SelectedPiece.Soldier, true);
@@ -388,6 +391,11 @@ public class GameManager : MonoBehaviour
                 boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
                 if (!walletOverride) { P1Coins.text = (int.Parse(P1Coins.text) - 100).ToString(); }
             }
+            else if (selectedPiece == SelectedPiece.King && walletOverride)
+            {
+                var kingObj = Instantiate(KingPrefabP1, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new King(kingObj, player), pieceGridPos);
+            }
         }
         else
         {
@@ -415,6 +423,11 @@ public class GameManager : MonoBehaviour
                 var helicopterObj = Instantiate(HelicopterPrefabP2, pieceGlobalPos, Quaternion.identity);
                 boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
                 if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 100).ToString(); }
+            }
+            else if (selectedPiece == SelectedPiece.King && walletOverride)
+            {
+                var kingObj = Instantiate(KingPrefabP2, pieceGlobalPos, Quaternion.identity);
+                boardManager.boardState.SetPiece(new King(kingObj, player), pieceGridPos);
             }
         }
     }
@@ -651,6 +664,7 @@ public class GameManager : MonoBehaviour
             }
         }
         movedPieceList.Clear();
+        shopManager.selectedPiece = null;
         playerTurn.SwitchPlayers();
     }
 }

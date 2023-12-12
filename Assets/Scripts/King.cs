@@ -21,7 +21,7 @@ public class King : IPiece
         Type = type;
         Movement = 1;
         Range = 1;
-        Health = 1;
+        Health = 15;
 
         DamageAsStat = "1";
     }

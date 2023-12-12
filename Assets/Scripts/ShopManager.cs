@@ -37,4 +37,5 @@ public enum SelectedPiece
     Sniper,
     Tank,
     Helicopter,
+    King
 }
