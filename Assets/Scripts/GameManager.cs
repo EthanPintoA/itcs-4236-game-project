@@ -323,7 +323,7 @@ public class GameManager : MonoBehaviour
                     var enemy = (currentPlayer == PieceType.Player1) ? PieceType.Player2 : PieceType.Player1;
                     if (boardManager.DidPlayerWin(enemy))
                     {
-                        Debug.Log($"Player {currentPlayer} won!");
+                        Debug.Log($"Player {enemy} won!");
                         if (currentPlayer == PieceType.Player1)
                         {
                             SceneManager.LoadScene("P2WinScene");
