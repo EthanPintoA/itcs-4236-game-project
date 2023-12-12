@@ -13,6 +13,8 @@ public class King : IPiece
     public int Range { get; }
     public int Health { get; set; }
 
+    public string DamageAsStat { get; }
+
     public King(GameObject gameObject, PieceType type)
     {
         GameObject = gameObject;
@@ -20,5 +22,7 @@ public class King : IPiece
         Movement = 1;
         Range = 1;
         Health = 1;
+
+        DamageAsStat = "1";
     }
 }

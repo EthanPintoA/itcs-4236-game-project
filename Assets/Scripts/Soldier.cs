@@ -13,6 +13,8 @@ public class Soldier : IPiece
     public int Range { get; }
     public int Health { get; set; }
 
+    public string DamageAsStat { get; }
+
     public Soldier(GameObject gameObject, PieceType type)
     {
         GameObject = gameObject;
@@ -20,5 +22,7 @@ public class Soldier : IPiece
         Movement = 1;
         Range = 1;
         Health = 1;
+
+        DamageAsStat = "1";
     }
 }
