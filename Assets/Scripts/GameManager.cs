@@ -183,7 +183,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-            else if (gameState == GameState.Selected)
+            else if (gameState == GameState.Selected) // move a selected piece
             {
                 var didSelectSpace = false;
                 foreach (Transform child in TempEntitiesParent.transform)
@@ -240,6 +240,8 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
+                        setSpriteToMoved(selectedPiece);
+                        movedPieceList.Add(selectedPiece);
                         CreateTargets(PossiblePositions);
                     }
                 }
