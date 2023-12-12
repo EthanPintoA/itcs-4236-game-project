@@ -331,7 +331,6 @@ public class GameManager : MonoBehaviour
                             SceneManager.LoadScene("P1WinScene");
                         }
                     }
-                    //asdf
                 }
                 else
                 {
