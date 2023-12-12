@@ -160,10 +160,11 @@ public class GameManager : MonoBehaviour
                 }
                 else//piece is selected (if your piece: you can move it)
                 {
+                    selected = pieceGridPos;
+
                     //If selecting one of your pieces, mark as selected and calculate avaliable spaces
                     if (ValidPieceType(piece))
                     {
-                        selected = pieceGridPos;
                         gameState = GameState.Selected;
                         var PossiblePositions = GetMovementOptions(piece, pieceGridPos);
                         CreateSpaces(PossiblePositions);
