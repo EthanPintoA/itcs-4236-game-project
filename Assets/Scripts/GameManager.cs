@@ -83,6 +83,7 @@ public class GameManager : MonoBehaviour
     private List<IPiece> movedPieceList = new List<IPiece>();
 
 
+
     void Awake()
     {
         playerTurn = PlayerTurn.Player1;
@@ -116,7 +117,7 @@ public class GameManager : MonoBehaviour
                 return;
             }
             var pieceGridPos = nPiecePos.Value;
-
+            Debug.Log("melon" + pieceGridPos);
             if (gameState == null)//empty square selected (place piece)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
