@@ -17,6 +17,8 @@ public class Sniper : IPiece
     public int Range { get; }
     public int Health { get; set; }
 
+    public string DamageAsStat { get; }
+
     public Sniper(GameObject gameObject, PieceType type)
     {
         GameObject = gameObject;
@@ -24,5 +26,7 @@ public class Sniper : IPiece
         Movement = 1;
         Range = 4;
         Health = 1;
+
+        DamageAsStat = "1~4";
     }
 }

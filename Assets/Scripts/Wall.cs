@@ -13,6 +13,8 @@ public class Wall : IPiece
     public int Range { get; }
     public int Health { get; set; }
 
+    public string DamageAsStat => "0";
+
     public Wall(GameObject gameObject)
     {
         GameObject = gameObject;

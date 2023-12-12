@@ -14,6 +14,8 @@ public class Tank : IPiece
     public int Range { get; }
     public int Health { get; set; }
 
+    public string DamageAsStat { get; }
+
     public Tank(GameObject gameObject, PieceType type)
     {
         GameObject = gameObject;
@@ -21,5 +23,7 @@ public class Tank : IPiece
         Movement = 1;
         Range = 2;
         Health = 5; //5
+
+        DamageAsStat = "3~4";
     }
 }

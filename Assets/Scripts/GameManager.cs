@@ -36,6 +36,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private GameObject HelicopterPrefabP1;
     [SerializeField]
+    private GameObject HelicopterPrefabP2;
+    [SerializeField]
     private GameObject KingPrefabP1;
     [SerializeField]
     private GameObject KingPrefabP2;
@@ -59,22 +61,25 @@ public class GameManager : MonoBehaviour
     public Sprite movedTank;
     public Sprite movedSniper;
     public Sprite movedKing;
+    public Sprite movedHeli;
     public Sprite P1Soldier;
     public Sprite P1Tank;
     public Sprite P1Sniper;
     public Sprite P1King;
+    public Sprite P1Heli;
     public Sprite P2Soldier;
     public Sprite P2Tank;
     public Sprite P2Sniper;
     public Sprite P2King;
+    public Sprite P2Heli;
 
     [HideInInspector]
     public PlayerTurn playerTurn;
     [HideInInspector]
     public GameState? gameState;
 
-
-    private Vector2Int selected;
+    [HideInInspector]
+    public Vector2Int? selected;
     private List<IPiece> movedPieceList = new List<IPiece>();
 
 
@@ -82,10 +87,12 @@ public class GameManager : MonoBehaviour
     {
         playerTurn = PlayerTurn.Player1;
         gameState = null;
+        selected = null;
     }
 
     void Start()
     {
+        selected = null;
         CreatePiece(new Vector2Int(0, 0), PieceType.Player1, SelectedPiece.King, true);
         CreatePiece(new Vector2Int(2, 0), PieceType.Player1, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(1, 0), PieceType.Player1, SelectedPiece.Soldier, true);
@@ -161,10 +168,11 @@ public class GameManager : MonoBehaviour
                 }
                 else//piece is selected (if your piece: you can move it)
                 {
+                    selected = pieceGridPos;
+
                     //If selecting one of your pieces, mark as selected and calculate avaliable spaces
                     if (ValidPieceType(piece))
                     {
-                        selected = pieceGridPos;
                         gameState = GameState.Selected;
                         var PossiblePositions = GetMovementOptions(piece, pieceGridPos);
                         CreateSpaces(PossiblePositions);
@@ -189,7 +197,7 @@ public class GameManager : MonoBehaviour
                 }
 
                 var didSelectSamePos = pieceGridPos == selected;
-                IPiece selectedPiece = boardManager.boardState.GetPiece(selected);
+                IPiece selectedPiece = boardManager.boardState.GetPiece(selected.Value);
 
                 if (didSelectSpace || didSelectSamePos)
                 {
@@ -210,7 +218,7 @@ public class GameManager : MonoBehaviour
                             }
                         }
 
-                        boardManager.boardState.MovePiece(selected, pieceGridPos);
+                        boardManager.boardState.MovePiece(selected.Value, pieceGridPos);
                         // Update piece since was destroyed and recreated
                         selectedPiece = boardManager.boardState.GetPiece(pieceGridPos);
                         selected = pieceGridPos;
@@ -224,6 +232,7 @@ public class GameManager : MonoBehaviour
                     {
                         ClearSpacesAndTargets();
                         gameState = null;
+                        selected = null;
                         // add piece to moved
                         setSpriteToMoved(selectedPiece);
                         movedPieceList.Add(selectedPiece);
@@ -238,6 +247,7 @@ public class GameManager : MonoBehaviour
                 {
                     ClearSpacesAndTargets();
                     gameState = null;
+                    selected = null;
                 }
             }
             else if (gameState == GameState.Attack)
@@ -254,12 +264,12 @@ public class GameManager : MonoBehaviour
                     else if (childGridPos.Value == pieceGridPos)
                     {
                         // add piece to moved
-                        IPiece piece = boardManager.boardState.GetPiece(selected);
+                        IPiece piece = boardManager.boardState.GetPiece(selected.Value);
                         setSpriteToMoved(piece);
                         movedPieceList.Add(piece);
                         Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
 
-                        boardManager.boardState.AttackPiece(selected, pieceGridPos);
+                        boardManager.boardState.AttackPiece(selected.Value, pieceGridPos);
                         var currentPlayer = playerTurn.GetPlayerPiece();
                         if (boardManager.DidPlayerWin(currentPlayer))
                         {
@@ -278,6 +288,7 @@ public class GameManager : MonoBehaviour
 
                 ClearSpacesAndTargets();
                 gameState = null;
+                selected = null;
                 // add piece to list
                 // playerTurn.SwitchPlayers(); //turn no longer switched after attack
             }
@@ -316,11 +327,13 @@ public class GameManager : MonoBehaviour
             {
                 ClearSpacesAndTargets();
                 gameState = null;
+                selected = null;
             }
             else if (gameState == GameState.Attack)
             {
                 ClearSpacesAndTargets();
                 gameState = null;
+                selected = null;
                 // add piece to list
 
                 // playerTurn.SwitchPlayers(); // turn not ended after cancel attack
@@ -407,7 +420,7 @@ public class GameManager : MonoBehaviour
             else if (selectedPiece == SelectedPiece.Helicopter && (int.Parse(P2Coins.text) >= 100 || walletOverride))
             {
                 // FIXME: Use the P2 helicopter prefab
-                var helicopterObj = Instantiate(HelicopterPrefabP1, pieceGlobalPos, Quaternion.identity);
+                var helicopterObj = Instantiate(HelicopterPrefabP2, pieceGlobalPos, Quaternion.identity);
                 boardManager.boardState.SetPiece(new Helicopter(helicopterObj, player), pieceGridPos);
                 if (!walletOverride) { P2Coins.text = (int.Parse(P2Coins.text) - 100).ToString(); }
             }
@@ -593,6 +606,10 @@ public class GameManager : MonoBehaviour
         {
             piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedKing;
         }
+        else if (piece is Helicopter)
+        {
+            piece.GameObject.GetComponent<SpriteRenderer>().sprite = movedHeli;
+        }
     }
     public void switchTurn()
     {
@@ -617,6 +634,10 @@ public class GameManager : MonoBehaviour
                 {
                     piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1King;
                 }
+                else if (piece is Helicopter)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P1Heli;
+                }
             }
             else if (player == PieceType.Player2)
             {
@@ -635,6 +656,10 @@ public class GameManager : MonoBehaviour
                 else if (piece is King)
                 {
                     piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2King;
+                }
+                else if (piece is Helicopter)
+                {
+                    piece.GameObject.GetComponent<SpriteRenderer>().sprite = P2Heli;
                 }
             }
         }
