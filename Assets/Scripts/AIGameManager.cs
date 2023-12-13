@@ -677,14 +677,38 @@ public class AIGameManager : MonoBehaviour
             // Debug.Log("watermelon" + randomNumber2);
             // if (randomNumber2 == 1)
             // {
-            //     List<Vector2Int> allPositions = new List<Vector2Int>();
-            //     for (int x = 0; x <= 9; x++)
+            //     List<Vector2Int> allPositions = new List<Vector2Int>
             //     {
-            //         for (int y = 0; y <= 9; y++)
-            //         {
-            //             allPositions.Add(new Vector2Int(x, y));
-            //         }
-            //     }
+            //         new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(2, 0), new Vector2Int(3, 0), new Vector2Int(4, 0),
+            //         new Vector2Int(5, 0), new Vector2Int(6, 0), new Vector2Int(7, 0), new Vector2Int(8, 0), new Vector2Int(9, 0),
+
+            //         new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(3, 1), new Vector2Int(4, 1),
+            //         new Vector2Int(5, 1), new Vector2Int(6, 1), new Vector2Int(7, 1), new Vector2Int(8, 1), new Vector2Int(9, 1),
+
+            //         new Vector2Int(0, 2), new Vector2Int(1, 2), new Vector2Int(2, 2), new Vector2Int(3, 2), new Vector2Int(4, 2),
+            //         new Vector2Int(5, 2), new Vector2Int(6, 2), new Vector2Int(7, 2), new Vector2Int(8, 2), new Vector2Int(9, 2),
+
+            //         new Vector2Int(0, 3), new Vector2Int(1, 3), new Vector2Int(2, 3), new Vector2Int(3, 3), new Vector2Int(4, 3),
+            //         new Vector2Int(5, 3), new Vector2Int(6, 3), new Vector2Int(7, 3), new Vector2Int(8, 3), new Vector2Int(9, 3),
+
+            //         new Vector2Int(0, 4), new Vector2Int(1, 4), new Vector2Int(2, 4), new Vector2Int(3, 4), new Vector2Int(4, 4),
+            //         new Vector2Int(5, 4), new Vector2Int(6, 4), new Vector2Int(7, 4), new Vector2Int(8, 4), new Vector2Int(9, 4),
+
+            //         new Vector2Int(0, 5), new Vector2Int(1, 5), new Vector2Int(2, 5), new Vector2Int(3, 5), new Vector2Int(4, 5),
+            //         new Vector2Int(5, 5), new Vector2Int(6, 5), new Vector2Int(7, 5), new Vector2Int(8, 5), new Vector2Int(9, 5),
+
+            //         new Vector2Int(0, 6), new Vector2Int(1, 6), new Vector2Int(2, 6), new Vector2Int(3, 6), new Vector2Int(4, 6),
+            //         new Vector2Int(5, 6), new Vector2Int(6, 6), new Vector2Int(7, 6), new Vector2Int(8, 6), new Vector2Int(9, 6),
+
+            //         new Vector2Int(0, 7), new Vector2Int(1, 7), new Vector2Int(2, 7), new Vector2Int(3, 7), new Vector2Int(4, 7),
+            //         new Vector2Int(5, 7), new Vector2Int(6, 7), new Vector2Int(7, 7), new Vector2Int(8, 7), new Vector2Int(9, 7),
+
+            //         new Vector2Int(0, 8), new Vector2Int(1, 8), new Vector2Int(2, 8), new Vector2Int(3, 8), new Vector2Int(4, 8),
+            //         new Vector2Int(5, 8), new Vector2Int(6, 8), new Vector2Int(7, 8), new Vector2Int(8, 8), new Vector2Int(9, 8),
+
+            //         new Vector2Int(0, 9), new Vector2Int(1, 9), new Vector2Int(2, 9), new Vector2Int(3, 9), new Vector2Int(4, 9),
+            //         new Vector2Int(5, 9), new Vector2Int(6, 9), new Vector2Int(7, 9), new Vector2Int(8, 9), new Vector2Int(9, 9),
+            //     };
             //     foreach (Vector2Int pieceGridPos in allPositions)
             //     {
             //         Debug.Log("in foreach");
@@ -694,15 +718,11 @@ public class AIGameManager : MonoBehaviour
             //             Debug.Log("piece = wall");
             //             //check and subtract coins from wallet
             //             int playerCoins = int.Parse(P2Coins.text);
-            //             if (playerCoins < 50)
-            //             {
-            //                 break; // Not enough coins to place TNT
-            //             }
-            //             else
+            //             if (playerCoins > 50)
             //             {
             //                 Debug.Log("bombing");
             //                 //place tnt
-            //                 if (HasNeighbor(pieceGridPos, PieceType.Player2))
+            //                 if (HasNeighbor(pieceGridPos, PieceType.Player1))
             //                 {
             //                     boardManager.boardState.SetPiece(null, pieceGridPos);
             //                     shopManager.selectedPiece = null;
