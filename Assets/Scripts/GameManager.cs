@@ -375,7 +375,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void CreatePiece(Vector2Int pieceGridPos, PieceType player, SelectedPiece? selectedPiece, bool walletOverride = false)
     {
-        Debug.Log($"Creating piece on grid position: {pieceGridPos}");
 
         var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 

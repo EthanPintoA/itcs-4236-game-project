@@ -101,7 +101,8 @@ public class AIGameManager : MonoBehaviour
         CreatePiece(new Vector2Int(8, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(7, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(6, 9), PieceType.Player2, SelectedPiece.Soldier, true);
-        randomNumber = UnityEngine.Random.Range(1, 6);
+        randomNumber = Random.Range(1, 1);
+        Debug.Log("melon" + randomNumber);
         // randomNumber = 1;
     }
 
@@ -357,7 +358,6 @@ public class AIGameManager : MonoBehaviour
     /// </summary>
     private void CreatePiece(Vector2Int pieceGridPos, PieceType player, SelectedPiece? selectedPiece, bool walletOverride = false)
     {
-        Debug.Log($"Creating piece on grid position: {pieceGridPos}");
 
         var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 
@@ -672,6 +672,52 @@ public class AIGameManager : MonoBehaviour
         //shop piece placement
         if (randomNumber == 1 && int.Parse(P2Coins.text) >= 70)//tank spam
         {
+            // //1/5 chance of just spending a turn bombing the map
+            // int randomNumber2 = Random.Range(1, 1);
+            // Debug.Log("watermelon" + randomNumber2);
+            // if (randomNumber2 == 1)
+            // {
+            //     List<Vector2Int> allPositions = new List<Vector2Int>();
+            //     for (int x = 0; x <= 9; x++)
+            //     {
+            //         for (int y = 0; y <= 9; y++)
+            //         {
+            //             allPositions.Add(new Vector2Int(x, y));
+            //         }
+            //     }
+            //     foreach (Vector2Int pieceGridPos in allPositions)
+            //     {
+            //         Debug.Log("in foreach");
+            //         IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+            //         if (piece != null && piece.Type == PieceType.Wall)
+            //         {
+            //             Debug.Log("piece = wall");
+            //             //check and subtract coins from wallet
+            //             int playerCoins = int.Parse(P2Coins.text);
+            //             if (playerCoins < 50)
+            //             {
+            //                 break; // Not enough coins to place TNT
+            //             }
+            //             else
+            //             {
+            //                 Debug.Log("bombing");
+            //                 //place tnt
+            //                 if (HasNeighbor(pieceGridPos, PieceType.Player2))
+            //                 {
+            //                     boardManager.boardState.SetPiece(null, pieceGridPos);
+            //                     shopManager.selectedPiece = null;
+            //                     P2Coins.text = (playerCoins - 50).ToString();
+            //                 }
+            //             }
+            //         }
+            //         else
+            //         {
+            //             break;
+            //         }
+            //     }
+            // }
+
+
             Vector2Int[] vector2IntValues = new Vector2Int[]
             {
                 new Vector2Int(3, 8),
@@ -681,7 +727,13 @@ public class AIGameManager : MonoBehaviour
                 new Vector2Int(3, 9),
                 new Vector2Int(2, 9),
                 new Vector2Int(1, 9),
-                new Vector2Int(0, 9)
+                new Vector2Int(0, 9),
+                new Vector2Int(4, 9),
+                new Vector2Int(5, 9),
+                new Vector2Int(6, 9),
+                new Vector2Int(7, 9),
+                new Vector2Int(8, 9),
+                new Vector2Int(9, 9)
             };
             // bool maxTanks = false;
             foreach (Vector2Int pieceGridPos in vector2IntValues)
@@ -693,7 +745,7 @@ public class AIGameManager : MonoBehaviour
                 }
             }
             //if extra money use for bombs
-            if (int.Parse(P2Coins.text) >= 70)
+            if (int.Parse(P2Coins.text) >= 150)
             {
                 Vector2Int[] bombPositions = new Vector2Int[]
                 {
@@ -721,11 +773,11 @@ public class AIGameManager : MonoBehaviour
                                 shopManager.selectedPiece = null;
                                 P2Coins.text = (playerCoins - 50).ToString();
                             }
-                            else
-                            {
-                                // Debug.Log("TNT must be placed next to a piece owned by the current player");
-                            }
                         }
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
             }
