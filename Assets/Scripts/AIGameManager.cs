@@ -357,7 +357,6 @@ public class AIGameManager : MonoBehaviour
     /// </summary>
     private void CreatePiece(Vector2Int pieceGridPos, PieceType player, SelectedPiece? selectedPiece, bool walletOverride = false)
     {
-
         var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 
         if (player == PieceType.Player1)
@@ -1020,24 +1019,25 @@ public class AIGameManager : MonoBehaviour
         }
 
         int pcount = 0;
-        IPiece[] pieces = new IPiece[100];
-        int[] piecespaces = new int[100];
+        List<IPiece> pieces = new List<IPiece>();
+        List<Vector2Int> piecespaces = new List<Vector2Int>();
 
         int epcount = 0;
-        int[] epiecespaces = new int[100];
+        List<Vector2Int> epiecespaces = new List<Vector2Int>();
 
         for (int i = 0; i < 100; i++)
         {
-            IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(i % 10, i / 10));
+            Vector2Int gridpos = new Vector2Int(i % 10, i / 10);
+            IPiece piece = boardManager.boardState.GetPiece(gridpos);
             if (piece != null && piece.Type == PieceType.Player2)
             {
-                pieces[pcount] = piece;
-                piecespaces[pcount] = i;
+                pieces.Add(piece);
+                piecespaces.Add(gridpos);
                 pcount++;
             }
             else if (piece != null && piece.Type == PieceType.Player1)
             {
-                epiecespaces[epcount] = i;
+                epiecespaces.Add(gridpos);
                 epcount++;
             }
         }
@@ -1054,12 +1054,12 @@ public class AIGameManager : MonoBehaviour
             piecedefeated[i] = false;
         }
 
-        int[][][] paths = new int[pcount][][];
+        Vector2Int[][][] paths = new Vector2Int[pcount][][];
         int[][] distances = new int[pcount][];
 
         for (int i = 0; i < pcount; i++)
         {
-            paths[i] = new int[epcount][];
+            paths[i] = new Vector2Int[epcount][];
             distances[i] = new int[epcount];
         }
 
@@ -1067,8 +1067,9 @@ public class AIGameManager : MonoBehaviour
         {
             for (int j = 0; j < epcount; j++)
             {
-                paths[i][j] = GetPath(piecespaces[i], epiecespaces[j]);
-                distances[i][j] = GetDistance(piecespaces[i], epiecespaces[j], paths[i][j]);
+                var grid = boardManager.boardState.Pieces.Select(piece => piece is Wall).ToArray();
+                paths[i][j] = new AStar(grid, 10, 10, piecespaces[i], epiecespaces[j]).GetPath();
+                distances[i][j] = paths[i][j].Length - 1;
             }
         }
 
@@ -1100,130 +1101,93 @@ public class AIGameManager : MonoBehaviour
             int move = pieces[minpiece].Movement;
             int distance = distances[minpiece][minepiece];
 
-            if (move >= distance)
+            if (!(pieces[minpiece] is King && distance > 2))
             {
-                move = distance - 1;
-            }
-
-            int pspace = piecespaces[minpiece];
-            while (move > 0)
-            {
-                int cspace = pspace;
-                for (int i = 0; i < move; i++)
+                if (move >= distance)
                 {
-                    cspace = paths[minpiece][minepiece][cspace];
+                    move = distance - 1;
                 }
 
-                IPiece piece = boardManager.boardState.GetPiece(new Vector2Int(cspace % 10, cspace / 10));
-                if (piece == null)
+                Vector2Int piecegridPos = piecespaces[minpiece];
+                while (move > 0)
                 {
-                    boardManager.boardState.MovePiece(new Vector2Int(pspace % 10, pspace / 10), new Vector2Int(cspace % 10, cspace / 10));
-                    pspace = cspace;
-                    break;
-                }
-                else
-                {
+                    Vector2Int newspace = paths[minpiece][minepiece][move];
+                    Vector2Int next = paths[minpiece][minepiece][move-1];
+
+                    IPiece piece = boardManager.boardState.GetPiece(newspace);
+                    if (piece == null)
+                    {
+                        boardManager.boardState.MovePiece(piecegridPos, newspace);
+                        piecegridPos = newspace;
+                        break;
+                    }
+                    else if((newspace - next).sqrMagnitude == 2)
+                    {
+                        Vector2Int testspace = new Vector2Int(newspace.x, next.y);
+                        piece = boardManager.boardState.GetPiece(testspace);
+                        if (piece == null)
+                        {
+                            boardManager.boardState.MovePiece(piecegridPos, testspace);
+                            piecegridPos = testspace;
+                            break;
+                        }
+
+                        testspace = new Vector2Int(next.x, newspace.y);
+                        piece = boardManager.boardState.GetPiece(testspace);
+                        if (piece == null)
+                        {
+                            boardManager.boardState.MovePiece(piecegridPos, testspace);
+                            piecegridPos = testspace;
+                            break;
+                        }
+                    }
+
                     move--;
                 }
-            }
 
-            if (move + pieces[minpiece].Range >= distance)
-            {
-                int espace = epiecespaces[minepiece];
+                var possiblePositions = GetAttackOptions(pieces[minpiece], piecegridPos);
 
-                boardManager.boardState.AttackPiece(new Vector2Int(pspace % 10, pspace / 10), new Vector2Int(espace % 10, espace / 10));
-                if (boardManager.DidPlayerWin(PieceType.Player2))
+                if (possiblePositions.Length > 0)
                 {
-                    Debug.Log($"Player {PieceType.Player2} won!");
-                    SceneManager.LoadScene("P2WinScene");
-                }
+                    int attackdis = 0;
+                    int attackpiece = minepiece;
+                    Vector2Int attackpos = epiecespaces[minepiece];
 
-                if (boardManager.boardState.GetPiece(new Vector2Int(espace % 10, espace / 10)) == null)
-                {
-                    piecedefeated[minepiece] = true;
+                    foreach (var pos in possiblePositions)
+                    {
+                        int newdis = (piecegridPos - pos).sqrMagnitude;
+                        if (newdis > attackdis)
+                        {
+                            attackdis = newdis;
+                            attackpos = pos;
+                            for (int i = 0; i < epcount; i++)
+                            {
+                                if (epiecespaces[i] == attackpos)
+                                {
+                                    attackpiece = i;
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+
+                    boardManager.boardState.AttackPiece(piecegridPos, attackpos);
+                    if (boardManager.DidPlayerWin(PieceType.Player2))
+                    {
+                        Debug.Log($"Player {PieceType.Player2} won!");
+                        SceneManager.LoadScene("P2WinScene");
+                        break;
+                    }
+
+                    if (boardManager.boardState.GetPiece(attackpos) == null)
+                    {
+                        piecedefeated[attackpiece] = true;
+                    }
                 }
             }
 
             piecemoved[minpiece] = true;
         }
-    }
-    public int[] GetPath(int cspace, int espace)
-    {
-        int[] board = new int[100];
-
-        for (int i = 0; i < 100; i++)
-        {
-            board[i] = -1;
-        }
-
-        board[espace] = 0;
-
-        GetPathRecursive(cspace, espace, board);
-
-        return board;
-    }
-    public void GetPathRecursive(int cspace, int espace, int[] board)
-    {
-        if (cspace == espace)
-        {
-            return;
-        }
-
-        //Up
-        if (espace > 9 && board[espace - 10] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace - 10) % 10, (espace - 10) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                board[espace - 10] = espace;
-                GetPathRecursive(cspace, espace - 10, board);
-            }
-        }
-
-        //Down
-        if (espace < 90 && board[espace + 10] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace + 10) % 10, (espace + 10) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                board[espace + 10] = espace;
-                GetPathRecursive(cspace, espace + 10, board);
-            }
-        }
-
-        //Left
-        if (espace % 10 != 0 && board[espace - 1] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace - 1) % 10, (espace - 1) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                board[espace - 1] = espace;
-                GetPathRecursive(cspace, espace - 1, board);
-            }
-        }
-
-        //Right
-        if (espace % 10 != 9 && board[espace + 1] < 0)
-        {
-            IPiece npiece = boardManager.boardState.GetPiece(new Vector2Int((espace + 1) % 10, (espace + 1) / 10));
-            if (npiece == null || npiece.Type != PieceType.Wall)
-            {
-                board[espace + 1] = espace;
-                GetPathRecursive(cspace, espace + 1, board);
-            }
-        }
-    }
-
-    public int GetDistance(int cspace, int espace, int[] board)
-    {
-        int distance = 0;
-
-        while (cspace != espace)
-        {
-            cspace = board[cspace];
-            distance++;
-        }
-
-        return distance;
     }
 }
