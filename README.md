@@ -88,6 +88,7 @@ The shop is the GUI on the right side of the screen.
   - If the carrying piece has a variable attack damage, a random number in the range of the attack damage will be chosen.
 - Health: 3 tiles + carrying piece's attack range / 2 (floored)
 - Cost: 100
+- **Note:** You can merge the Helicopter with another piece by moving it onto another piece's tile.
 
 ### Tnt
 
