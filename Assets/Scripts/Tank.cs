@@ -20,9 +20,9 @@ public class Tank : IPiece
     {
         GameObject = gameObject;
         Type = type;
-        Movement = 1;
+        Movement = 2;
         Range = 2;
-        Health = 5; //5
+        Health = 5;
 
         DamageAsStat = "3~4";
     }
