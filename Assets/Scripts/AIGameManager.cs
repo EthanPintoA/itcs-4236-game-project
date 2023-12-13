@@ -80,7 +80,7 @@ public class AIGameManager : MonoBehaviour
     [HideInInspector]
     public Vector2Int? selected;
     private List<IPiece> movedPieceList = new List<IPiece>();
-
+    private int randomNumber;
 
     void Awake()
     {
@@ -101,6 +101,9 @@ public class AIGameManager : MonoBehaviour
         CreatePiece(new Vector2Int(8, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(7, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(6, 9), PieceType.Player2, SelectedPiece.Soldier, true);
+        randomNumber = Random.Range(1, 1);
+        Debug.Log("melon" + randomNumber);
+        // randomNumber = 1;
     }
 
     void Update()
@@ -355,7 +358,6 @@ public class AIGameManager : MonoBehaviour
     /// </summary>
     private void CreatePiece(Vector2Int pieceGridPos, PieceType player, SelectedPiece? selectedPiece, bool walletOverride = false)
     {
-        Debug.Log($"Creating piece on grid position: {pieceGridPos}");
 
         var pieceGlobalPos = boardManager.GridPosToWorldPos(pieceGridPos);
 
@@ -667,6 +669,139 @@ public class AIGameManager : MonoBehaviour
 
     public void AITurn()
     {
+        //shop piece placement
+        if (randomNumber == 1 && int.Parse(P2Coins.text) >= 70)//tank spam
+        {
+            // //1/5 chance of just spending a turn bombing the map
+            // int randomNumber2 = Random.Range(1, 1);
+            // Debug.Log("watermelon" + randomNumber2);
+            // if (randomNumber2 == 1)
+            // {
+            //     List<Vector2Int> allPositions = new List<Vector2Int>
+            //     {
+            //         new Vector2Int(0, 0), new Vector2Int(1, 0), new Vector2Int(2, 0), new Vector2Int(3, 0), new Vector2Int(4, 0),
+            //         new Vector2Int(5, 0), new Vector2Int(6, 0), new Vector2Int(7, 0), new Vector2Int(8, 0), new Vector2Int(9, 0),
+
+            //         new Vector2Int(0, 1), new Vector2Int(1, 1), new Vector2Int(2, 1), new Vector2Int(3, 1), new Vector2Int(4, 1),
+            //         new Vector2Int(5, 1), new Vector2Int(6, 1), new Vector2Int(7, 1), new Vector2Int(8, 1), new Vector2Int(9, 1),
+
+            //         new Vector2Int(0, 2), new Vector2Int(1, 2), new Vector2Int(2, 2), new Vector2Int(3, 2), new Vector2Int(4, 2),
+            //         new Vector2Int(5, 2), new Vector2Int(6, 2), new Vector2Int(7, 2), new Vector2Int(8, 2), new Vector2Int(9, 2),
+
+            //         new Vector2Int(0, 3), new Vector2Int(1, 3), new Vector2Int(2, 3), new Vector2Int(3, 3), new Vector2Int(4, 3),
+            //         new Vector2Int(5, 3), new Vector2Int(6, 3), new Vector2Int(7, 3), new Vector2Int(8, 3), new Vector2Int(9, 3),
+
+            //         new Vector2Int(0, 4), new Vector2Int(1, 4), new Vector2Int(2, 4), new Vector2Int(3, 4), new Vector2Int(4, 4),
+            //         new Vector2Int(5, 4), new Vector2Int(6, 4), new Vector2Int(7, 4), new Vector2Int(8, 4), new Vector2Int(9, 4),
+
+            //         new Vector2Int(0, 5), new Vector2Int(1, 5), new Vector2Int(2, 5), new Vector2Int(3, 5), new Vector2Int(4, 5),
+            //         new Vector2Int(5, 5), new Vector2Int(6, 5), new Vector2Int(7, 5), new Vector2Int(8, 5), new Vector2Int(9, 5),
+
+            //         new Vector2Int(0, 6), new Vector2Int(1, 6), new Vector2Int(2, 6), new Vector2Int(3, 6), new Vector2Int(4, 6),
+            //         new Vector2Int(5, 6), new Vector2Int(6, 6), new Vector2Int(7, 6), new Vector2Int(8, 6), new Vector2Int(9, 6),
+
+            //         new Vector2Int(0, 7), new Vector2Int(1, 7), new Vector2Int(2, 7), new Vector2Int(3, 7), new Vector2Int(4, 7),
+            //         new Vector2Int(5, 7), new Vector2Int(6, 7), new Vector2Int(7, 7), new Vector2Int(8, 7), new Vector2Int(9, 7),
+
+            //         new Vector2Int(0, 8), new Vector2Int(1, 8), new Vector2Int(2, 8), new Vector2Int(3, 8), new Vector2Int(4, 8),
+            //         new Vector2Int(5, 8), new Vector2Int(6, 8), new Vector2Int(7, 8), new Vector2Int(8, 8), new Vector2Int(9, 8),
+
+            //         new Vector2Int(0, 9), new Vector2Int(1, 9), new Vector2Int(2, 9), new Vector2Int(3, 9), new Vector2Int(4, 9),
+            //         new Vector2Int(5, 9), new Vector2Int(6, 9), new Vector2Int(7, 9), new Vector2Int(8, 9), new Vector2Int(9, 9),
+            //     };
+            //     foreach (Vector2Int pieceGridPos in allPositions)
+            //     {
+            //         Debug.Log("in foreach");
+            //         IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+            //         if (piece != null && piece.Type == PieceType.Wall)
+            //         {
+            //             Debug.Log("piece = wall");
+            //             //check and subtract coins from wallet
+            //             int playerCoins = int.Parse(P2Coins.text);
+            //             if (playerCoins > 50)
+            //             {
+            //                 Debug.Log("bombing");
+            //                 //place tnt
+            //                 if (HasNeighbor(pieceGridPos, PieceType.Player1))
+            //                 {
+            //                     boardManager.boardState.SetPiece(null, pieceGridPos);
+            //                     shopManager.selectedPiece = null;
+            //                     P2Coins.text = (playerCoins - 50).ToString();
+            //                 }
+            //             }
+            //         }
+            //         else
+            //         {
+            //             break;
+            //         }
+            //     }
+            // }
+
+
+            Vector2Int[] vector2IntValues = new Vector2Int[]
+            {
+                new Vector2Int(3, 8),
+                new Vector2Int(2, 8),
+                new Vector2Int(1, 8),
+                new Vector2Int(0, 8),
+                new Vector2Int(3, 9),
+                new Vector2Int(2, 9),
+                new Vector2Int(1, 9),
+                new Vector2Int(0, 9),
+                new Vector2Int(4, 9),
+                new Vector2Int(5, 9),
+                new Vector2Int(6, 9),
+                new Vector2Int(7, 9),
+                new Vector2Int(8, 9),
+                new Vector2Int(9, 9)
+            };
+            // bool maxTanks = false;
+            foreach (Vector2Int pieceGridPos in vector2IntValues)
+            {
+                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                if (piece == null)
+                {
+                    CreatePiece(pieceGridPos, PieceType.Player2, SelectedPiece.Tank);
+                }
+            }
+            //if extra money use for bombs
+            if (int.Parse(P2Coins.text) >= 150)
+            {
+                Vector2Int[] bombPositions = new Vector2Int[]
+                {
+                    new Vector2Int(2, 7),
+                    new Vector2Int(1, 7),
+                    new Vector2Int(0, 7)
+                };
+                foreach (Vector2Int pieceGridPos in bombPositions)
+                {
+                    IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                    if (piece.Type == PieceType.Wall)
+                    {
+                        //check and subtract coins from wallet
+                        int playerCoins = int.Parse(P2Coins.text);
+                        if (playerCoins < 50)
+                        {
+                            break; // Not enough coins to place TNT
+                        }
+                        else
+                        {
+                            //place tnt
+                            if (HasNeighbor(pieceGridPos, PieceType.Player2))
+                            {
+                                boardManager.boardState.SetPiece(null, pieceGridPos);
+                                shopManager.selectedPiece = null;
+                                P2Coins.text = (playerCoins - 50).ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
         int pcount = 0;
         IPiece[] pieces = new IPiece[100];
         int[] piecespaces = new int[100];
