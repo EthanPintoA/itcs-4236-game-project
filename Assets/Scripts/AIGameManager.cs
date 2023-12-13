@@ -101,7 +101,7 @@ public class AIGameManager : MonoBehaviour
         CreatePiece(new Vector2Int(8, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(7, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(6, 9), PieceType.Player2, SelectedPiece.Soldier, true);
-        randomNumber = Random.Range(1, 4);
+        randomNumber = Random.Range(1, 5);
         Debug.Log("random num = " + randomNumber);
     }
 
@@ -940,7 +940,84 @@ public class AIGameManager : MonoBehaviour
                 }
             }
         }
+        if (randomNumber == 4 && int.Parse(P2Coins.text) >= 40)//tank sniper spam
+        {
+            Vector2Int[] vector2IntValues = new Vector2Int[]
+                {
+                new Vector2Int(3, 8),
+                new Vector2Int(2, 8),
+                new Vector2Int(1, 8),
+                new Vector2Int(0, 8),
+                new Vector2Int(3, 9),
+                new Vector2Int(2, 9),
+                new Vector2Int(1, 9),
+                new Vector2Int(0, 9),
+                new Vector2Int(4, 9),
+                new Vector2Int(5, 9),
+                new Vector2Int(6, 9),
+                new Vector2Int(7, 9),
+                new Vector2Int(8, 9),
+                new Vector2Int(9, 9)
+                };
+            foreach (Vector2Int pieceGridPos in vector2IntValues)
+            {
+                IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                if (piece == null)
+                {
+                    int randomNumber2 = Random.Range(1, 4);
+                    if (randomNumber2 == 1)
+                    {
+                        CreatePiece(pieceGridPos, PieceType.Player2, SelectedPiece.Sniper);
+                    }
+                    else if (randomNumber2 == 2)
+                    {
+                        CreatePiece(pieceGridPos, PieceType.Player2, SelectedPiece.Tank);
+                    }
+                    else if (randomNumber2 == 3)
+                    {
+                        CreatePiece(pieceGridPos, PieceType.Player2, SelectedPiece.Soldier);
+                    }
 
+                }
+            }
+            //if extra money use for bombs
+            if (int.Parse(P2Coins.text) >= 150)
+            {
+                Vector2Int[] bombPositions = new Vector2Int[]
+                {
+                new Vector2Int(2, 7),
+                new Vector2Int(1, 7),
+                new Vector2Int(0, 7)
+                };
+                foreach (Vector2Int pieceGridPos in bombPositions)
+                {
+                    IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
+                    if (piece.Type == PieceType.Wall)
+                    {
+                        //check and subtract coins from wallet
+                        int playerCoins = int.Parse(P2Coins.text);
+                        if (playerCoins < 50)
+                        {
+                            break; // Not enough coins to place TNT
+                        }
+                        else
+                        {
+                            //place tnt
+                            if (HasNeighbor(pieceGridPos, PieceType.Player2))
+                            {
+                                boardManager.boardState.SetPiece(null, pieceGridPos);
+                                shopManager.selectedPiece = null;
+                                P2Coins.text = (playerCoins - 50).ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+        }
 
         int pcount = 0;
         IPiece[] pieces = new IPiece[100];
