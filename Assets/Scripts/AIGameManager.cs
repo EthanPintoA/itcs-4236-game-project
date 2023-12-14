@@ -1141,6 +1141,61 @@ public class AIGameManager : MonoBehaviour
                             break;
                         }
                     }
+                    else if ((newspace - next).sqrMagnitude == 1)
+                    {
+                        if (newspace.x == next.x)
+                        {
+                            if(newspace.x > 0)
+                            {
+                                Vector2Int testspace = new Vector2Int(newspace.x - 1, newspace.y);
+                                piece = boardManager.boardState.GetPiece(testspace);
+                                if (piece == null)
+                                {
+                                    boardManager.boardState.MovePiece(piecegridPos, testspace);
+                                    piecegridPos = testspace;
+                                    break;
+                                }
+                            }
+
+                            if (newspace.x < 9)
+                            {
+                                Vector2Int testspace = new Vector2Int(newspace.x + 1, newspace.y);
+                                piece = boardManager.boardState.GetPiece(testspace);
+                                if (piece == null)
+                                {
+                                    boardManager.boardState.MovePiece(piecegridPos, testspace);
+                                    piecegridPos = testspace;
+                                    break;
+                                }
+                            }
+                        }
+                        else if(newspace.y == next.y)
+                        {
+                            if (newspace.y > 0)
+                            {
+                                Vector2Int testspace = new Vector2Int(newspace.x, newspace.y - 1);
+                                piece = boardManager.boardState.GetPiece(testspace);
+                                if (piece == null)
+                                {
+                                    boardManager.boardState.MovePiece(piecegridPos, testspace);
+                                    piecegridPos = testspace;
+                                    break;
+                                }
+                            }
+
+                            if (newspace.y < 9)
+                            {
+                                Vector2Int testspace = new Vector2Int(newspace.x, newspace.y - 1);
+                                piece = boardManager.boardState.GetPiece(testspace);
+                                if (piece == null)
+                                {
+                                    boardManager.boardState.MovePiece(piecegridPos, testspace);
+                                    piecegridPos = testspace;
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     move--;
                 }
