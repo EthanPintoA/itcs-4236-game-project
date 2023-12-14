@@ -117,7 +117,7 @@ public class GameManager : MonoBehaviour
                 return;
             }
             var pieceGridPos = nPiecePos.Value;
-            Debug.Log("melon" + pieceGridPos);
+            
             if (gameState == null)//empty square selected (place piece)
             {
                 IPiece piece = boardManager.boardState.GetPiece(pieceGridPos);
@@ -270,7 +270,7 @@ public class GameManager : MonoBehaviour
                         IPiece piece = boardManager.boardState.GetPiece(selected.Value);
                         setSpriteToMoved(piece);
                         movedPieceList.Add(piece);
-                        Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
+                        //Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
 
                         boardManager.boardState.AttackPiece(selected.Value, pieceGridPos);
                         var currentPlayer = playerTurn.GetPlayerPiece();

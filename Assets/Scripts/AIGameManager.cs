@@ -80,7 +80,7 @@ public class AIGameManager : MonoBehaviour
     [HideInInspector]
     public Vector2Int? selected;
     private List<IPiece> movedPieceList = new List<IPiece>();
-    private int randomNumber;
+    private int randomNumber; //Determines AI Shop Strategy
 
     void Awake()
     {
@@ -102,7 +102,7 @@ public class AIGameManager : MonoBehaviour
         CreatePiece(new Vector2Int(7, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         CreatePiece(new Vector2Int(6, 9), PieceType.Player2, SelectedPiece.Soldier, true);
         randomNumber = Random.Range(1, 5);
-        Debug.Log("random num = " + randomNumber);
+        //Debug.Log("random num = " + randomNumber);
     }
 
     void Update()
@@ -269,7 +269,7 @@ public class AIGameManager : MonoBehaviour
                         IPiece piece = boardManager.boardState.GetPiece(selected.Value);
                         setSpriteToMoved(piece);
                         movedPieceList.Add(piece);
-                        Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
+                        //Debug.Log("Length of movedPieceList after attack: " + movedPieceList.Count);
 
                         boardManager.boardState.AttackPiece(selected.Value, pieceGridPos);
                         if (boardManager.DidPlayerWin(PieceType.Player1))
@@ -672,7 +672,6 @@ public class AIGameManager : MonoBehaviour
         {
             // //1/5 chance of just spending a turn bombing the map
             // int randomNumber2 = Random.Range(1, 1);
-            // Debug.Log("watermelon" + randomNumber2);
             // if (randomNumber2 == 1)
             // {
             //     List<Vector2Int> allPositions = new List<Vector2Int>
