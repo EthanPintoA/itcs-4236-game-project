@@ -1025,6 +1025,7 @@ public class AIGameManager : MonoBehaviour
         int epcount = 0;
         List<Vector2Int> epiecespaces = new List<Vector2Int>();
 
+        //Get friendly and enemy pieces
         for (int i = 0; i < 100; i++)
         {
             Vector2Int gridpos = new Vector2Int(i % 10, i / 10);
@@ -1056,13 +1057,14 @@ public class AIGameManager : MonoBehaviour
 
         Vector2Int[][][] paths = new Vector2Int[pcount][][];
         int[][] distances = new int[pcount][];
-
+        
         for (int i = 0; i < pcount; i++)
         {
             paths[i] = new Vector2Int[epcount][];
             distances[i] = new int[epcount];
         }
 
+        //Generate a path from each friendly piece to each enemy piece and record the length
         for (int i = 0; i < pcount; i++)
         {
             for (int j = 0; j < epcount; j++)
@@ -1073,12 +1075,14 @@ public class AIGameManager : MonoBehaviour
             }
         }
 
+        //Movement and attacking
         while (piecemoved.Any(x => x == false))
         {
             int mindis = 100;
             int minpiece = -1;
             int minepiece = -1;
 
+            //Find the shortest path and the coresponding friendly and enemy piece that haven't been moved or defeated
             for (int i = 0; i < pcount; i++)
             {
                 if (!piecemoved[i])
@@ -1101,6 +1105,7 @@ public class AIGameManager : MonoBehaviour
             int move = pieces[minpiece].Movement;
             int distance = distances[minpiece][minepiece];
 
+            //Move piece, but King only moves if an enemy is in range
             if (!(pieces[minpiece] is King && distance > 2))
             {
                 if (move >= distance)
@@ -1111,9 +1116,11 @@ public class AIGameManager : MonoBehaviour
                 Vector2Int piecegridPos = piecespaces[minpiece];
                 while (move > 0)
                 {
+                    //Move along the path
                     Vector2Int newspace = paths[minpiece][minepiece][move];
                     Vector2Int next = paths[minpiece][minepiece][move-1];
 
+                    //Check if space is occupied
                     IPiece piece = boardManager.boardState.GetPiece(newspace);
                     if (piece == null)
                     {
@@ -1121,7 +1128,7 @@ public class AIGameManager : MonoBehaviour
                         piecegridPos = newspace;
                         break;
                     }
-                    else if((newspace - next).sqrMagnitude == 2)
+                    else if((newspace - next).sqrMagnitude == 2) //Move cardinal if diagonal is blocked
                     {
                         Vector2Int testspace = new Vector2Int(newspace.x, next.y);
                         piece = boardManager.boardState.GetPiece(testspace);
@@ -1141,7 +1148,7 @@ public class AIGameManager : MonoBehaviour
                             break;
                         }
                     }
-                    else if ((newspace - next).sqrMagnitude == 1)
+                    else if ((newspace - next).sqrMagnitude == 1) //Move diagonal if cardinal is blocked
                     {
                         if (newspace.x == next.x)
                         {
@@ -1185,7 +1192,7 @@ public class AIGameManager : MonoBehaviour
 
                             if (newspace.y < 9)
                             {
-                                Vector2Int testspace = new Vector2Int(newspace.x, newspace.y - 1);
+                                Vector2Int testspace = new Vector2Int(newspace.x, newspace.y + 1);
                                 piece = boardManager.boardState.GetPiece(testspace);
                                 if (piece == null)
                                 {
@@ -1202,6 +1209,7 @@ public class AIGameManager : MonoBehaviour
 
                 var possiblePositions = GetAttackOptions(pieces[minpiece], piecegridPos);
 
+                //Attack furthest target if possible
                 if (possiblePositions.Length > 0)
                 {
                     int attackdis = 0;
@@ -1230,8 +1238,8 @@ public class AIGameManager : MonoBehaviour
                     boardManager.boardState.AttackPiece(piecegridPos, attackpos);
                     if (boardManager.DidPlayerWin(PieceType.Player2))
                     {
-                        Debug.Log($"Player {PieceType.Player2} won!");
-                        SceneManager.LoadScene("P2WinScene");
+                        Debug.Log($"Enemy won!");
+                        SceneManager.LoadScene("EnemyWinScene");
                         break;
                     }
 

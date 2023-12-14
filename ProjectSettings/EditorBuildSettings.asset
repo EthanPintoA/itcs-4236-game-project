@@ -6,7 +6,16 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/MainMenu.unity
+    guid: 1c88d7fde9c00b045bbe8412c32bcd39
+  - enabled: 1
+    path: Assets/Scenes/InstructionScene.unity
+    guid: 46ead613d1f43cf40bd2a8319709428c
+  - enabled: 1
+    path: Assets/Scenes/AIScene.unity
+    guid: 12345efac2d6d9048b9e42817509b9e1
+  - enabled: 1
+    path: Assets/Scenes/PvPScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
     path: Assets/Scenes/P1WinScene.unity
@@ -15,9 +24,6 @@ EditorBuildSettings:
     path: Assets/Scenes/P2WinScene.unity
     guid: 99dc0f01c87290542bd19270d0c42f0e
   - enabled: 1
-    path: Assets/Scenes/MainMenu.unity
-    guid: 46ead613d1f43cf40bd2a8319709428c
-  - enabled: 1
-    path: Assets/Scenes/AIScene.unity
-    guid: e029d48e0508e594b87b33e71436a90b
+    path: Assets/Scenes/EnemyWinScene.unity
+    guid: cc04439bbc2410541a4dbb7ada050453
   m_configObjects: {}
